@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Github, Linkedin, ArrowRight, X,
   Lock, Plus, Trash2, LogOut, Newspaper, Briefcase,
-  GraduationCap, User, Camera, Menu, Send
+  GraduationCap, User, Camera, Menu, Send, Upload, Image as ImageIcon
 } from 'lucide-react';
 
 // Firebase Imports
@@ -49,11 +49,19 @@ const App = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Data States
   const [projects, setProjects] = useState([]);
   const [journal, setJournal] = useState([]);
+  const [experience, setExperience] = useState([]);
+  const [education, setEducation] = useState([]);
+  const [photos, setPhotos] = useState([]);
 
+  // Admin Forms States
   const [newProject, setNewProject] = useState({ title: '', category: '', description: '', image: '' });
   const [newPost, setNewPost] = useState({ title: '', content: '' });
+  const [newExp, setNewExp] = useState({ company: '', role: '', period: '', description: '' });
+  const [newEdu, setNewEdu] = useState({ school: '', degree: '', period: '', description: '' });
+  const [newPhoto, setNewPhoto] = useState({ image: '', caption: '' });
 
   // Contact Form State
   const [contactData, setContactData] = useState({ name: '', email: '', subject: '', message: '' });
@@ -79,26 +87,30 @@ const App = () => {
   useEffect(() => {
     if (isLoading) return;
 
-    const unsubProjects = onSnapshot(
-      collection(db, 'artifacts', portfolioId, 'public', 'data', 'projects'),
-      (snapshot) => {
-        setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      }
-    );
+    const setupListener = (collectionName, setter) => {
+      return onSnapshot(
+        collection(db, 'artifacts', portfolioId, 'public', 'data', collectionName),
+        (snapshot) => {
+          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          // Tri par date de création si disponible
+          data.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+          setter(data);
+        }
+      );
+    };
 
-    const unsubJournal = onSnapshot(
-      collection(db, 'artifacts', portfolioId, 'public', 'data', 'journal'),
-      (snapshot) => {
-        const sortedJournal = snapshot.docs
-          .map(doc => ({ id: doc.id, ...doc.data() }))
-          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        setJournal(sortedJournal);
-      }
-    );
+    const unsubProjects = setupListener('projects', setProjects);
+    const unsubJournal = setupListener('journal', setJournal);
+    const unsubExp = setupListener('experience', setExperience);
+    const unsubEdu = setupListener('education', setEducation);
+    const unsubPhotos = setupListener('photos', setPhotos);
 
     return () => {
       unsubProjects();
       unsubJournal();
+      unsubExp();
+      unsubEdu();
+      unsubPhotos();
     };
   }, [isLoading]);
 
@@ -124,25 +136,28 @@ const App = () => {
     window.scrollTo(0, 0);
   };
 
-  const addProject = async (e) => {
-    e.preventDefault();
-    if (!user || user.isAnonymous) return;
-    await addDoc(collection(db, 'artifacts', portfolioId, 'public', 'data', 'projects'), {
-      ...newProject,
-      createdAt: serverTimestamp()
-    });
-    setNewProject({ title: '', category: '', description: '', image: '' });
+  const handleFileUpload = (e, setter, field) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setter(prev => ({ ...prev, [field]: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const addJournalEntry = async (e) => {
-    e.preventDefault();
+  const addDocToFirestore = async (col, data, resetter, initialData) => {
     if (!user || user.isAnonymous) return;
-    await addDoc(collection(db, 'artifacts', portfolioId, 'public', 'data', 'journal'), {
-      ...newPost,
-      date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
-      createdAt: serverTimestamp()
-    });
-    setNewPost({ title: '', content: '' });
+    try {
+      await addDoc(collection(db, 'artifacts', portfolioId, 'public', 'data', col), {
+        ...data,
+        createdAt: serverTimestamp()
+      });
+      resetter(initialData);
+    } catch (err) {
+      console.error("Erreur d'ajout:", err);
+    }
   };
 
   const deleteItem = async (col, id) => {
@@ -284,18 +299,22 @@ const App = () => {
           <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 pb-12">Expérience.</h2>
             <div className="space-y-24">
-              <div className="grid md:grid-cols-12 gap-8">
-                <div className="md:col-span-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 pt-2">2023 — Présent</div>
-                <div className="md:col-span-9">
-                  <h3 className="font-serif text-4xl mb-4">Projets EPITA</h3>
-                  <p className="text-xl text-neutral-500 font-light leading-relaxed">Développement intensif en C et Python. Optimisation d'algorithmes et gestion mémoire.</p>
+              {experience.map(exp => (
+                <div key={exp.id} className="grid md:grid-cols-12 gap-8 items-start">
+                  <div className="md:col-span-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 pt-2">{exp.period}</div>
+                  <div className="md:col-span-9">
+                    <h3 className="font-serif text-4xl mb-2">{exp.role}</h3>
+                    <p className="text-xs font-bold uppercase tracking-widest text-neutral-950 mb-4">{exp.company}</p>
+                    <p className="text-xl text-neutral-500 font-light leading-relaxed">{exp.description}</p>
+                  </div>
                 </div>
-              </div>
+              ))}
+              {experience.length === 0 && <p className="font-serif text-2xl italic text-neutral-300">Aucune expérience répertoriée.</p>}
             </div>
           </section>
         )}
 
-        {/* Projets (Dynamique Firestore) */}
+        {/* Projets */}
         {activeTab === 'projects' && (
           <section className="max-w-[1600px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-8xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Projets.</h2>
@@ -320,11 +339,14 @@ const App = () => {
           <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 pb-12">Formation.</h2>
             <div className="space-y-20">
-              <div className="border-l-2 border-neutral-950 pl-12">
-                <h3 className="font-serif text-5xl mb-4">EPITA</h3>
-                <p className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-6">Cycle Préparatoire · 2023 — 2025</p>
-                <p className="text-xl text-neutral-500 font-light leading-relaxed">Intelligence informatique et architecture logicielle.</p>
-              </div>
+              {education.map(edu => (
+                <div key={edu.id} className="border-l-2 border-neutral-950 pl-12">
+                  <h3 className="font-serif text-5xl mb-2">{edu.school}</h3>
+                  <p className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-6">{edu.degree} · {edu.period}</p>
+                  <p className="text-xl text-neutral-500 font-light leading-relaxed">{edu.description}</p>
+                </div>
+              ))}
+              {education.length === 0 && <p className="font-serif text-2xl italic text-neutral-300">Aucune formation répertoriée.</p>}
             </div>
           </section>
         )}
@@ -339,6 +361,7 @@ const App = () => {
               <div className="space-y-12">
                 <h2 className="font-serif text-8xl tracking-tighter italic">Bio.</h2>
                 <p className="text-3xl font-light leading-tight text-neutral-800">Passionné par la structure et l'élégance algorithmique, je conçois le code comme une architecture invisible.</p>
+                <p className="text-xl font-light text-neutral-500 leading-relaxed">Étudiant à l'EPITA Paris, je combine rigueur technique et curiosité créative.</p>
               </div>
             </div>
           </section>
@@ -348,20 +371,23 @@ const App = () => {
         {activeTab === 'photography' && (
           <section className="max-w-[1400px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Photographie.</h2>
-            <div className="columns-1 md:columns-2 gap-12 space-y-12">
-              {[
-                "https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&q=80&w=1200",
-                "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&q=80&w=1200",
-                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=1200",
-                "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&q=80&w=1200"
-              ].map((src, i) => (
-                <img key={i} src={src} className="w-full grayscale hover:grayscale-0 transition-all duration-1000 border border-neutral-100" alt={`Photo ${i}`} />
+            <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+              {photos.map((photo) => (
+                <div key={photo.id} className="group relative overflow-hidden bg-neutral-100 border border-neutral-100">
+                  <img src={photo.image} className="w-full grayscale hover:grayscale-0 transition-all duration-1000" alt={photo.caption} />
+                  {photo.caption && (
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                      <p className="text-[10px] font-bold uppercase tracking-widest">{photo.caption}</p>
+                    </div>
+                  )}
+                </div>
               ))}
+              {photos.length === 0 && <p className="font-serif text-2xl italic text-neutral-300">Galerie vide.</p>}
             </div>
           </section>
         )}
 
-        {/* Journal (Dynamique Firestore) */}
+        {/* Journal */}
         {activeTab === 'journal' && (
           <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Journal.</h2>
@@ -386,48 +412,18 @@ const App = () => {
             <div className="grid md:grid-cols-12 gap-16">
               <div className="md:col-span-5 space-y-8">
                 <p className="text-xl font-light text-neutral-500 leading-relaxed italic">
-                  Une question sur un projet ? Une opportunité de collaboration ? N'hésitez pas à me contacter directement via ce formulaire.
+                  Une question sur un projet ? N'hésitez pas à me contacter via ce formulaire.
                 </p>
-                <div className="pt-8">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Direct</p>
-                  <p className="font-serif text-lg">louisdacosta@etik.com</p>
-                </div>
+                <p className="font-serif text-lg">louisdacosta@etik.com</p>
               </div>
               <div className="md:col-span-7">
                 <form onSubmit={handleSubmitContact} className="space-y-8">
                   <div className="grid grid-cols-2 gap-8">
-                    <input
-                      type="text"
-                      placeholder="Nom"
-                      className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950"
-                      value={contactData.name}
-                      onChange={(e) => setContactData({ ...contactData, name: e.target.value })}
-                      required
-                    />
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950"
-                      value={contactData.email}
-                      onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
-                      required
-                    />
+                    <input type="text" placeholder="Nom" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950" value={contactData.name} onChange={(e) => setContactData({ ...contactData, name: e.target.value })} required />
+                    <input type="email" placeholder="Email" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950" value={contactData.email} onChange={(e) => setContactData({ ...contactData, email: e.target.value })} required />
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Objet"
-                    className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950"
-                    value={contactData.subject}
-                    onChange={(e) => setContactData({ ...contactData, subject: e.target.value })}
-                    required
-                  />
-                  <textarea
-                    placeholder="Message"
-                    className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 h-32"
-                    value={contactData.message}
-                    onChange={(e) => setContactData({ ...contactData, message: e.target.value })}
-                    required
-                  />
+                  <input type="text" placeholder="Objet" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950" value={contactData.subject} onChange={(e) => setContactData({ ...contactData, subject: e.target.value })} required />
+                  <textarea placeholder="Message" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none h-32" value={contactData.message} onChange={(e) => setContactData({ ...contactData, message: e.target.value })} required />
                   <button type="submit" className="flex items-center gap-4 bg-neutral-950 text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-all">
                     Envoyer le message <Send size={16} />
                   </button>
@@ -437,50 +433,122 @@ const App = () => {
           </section>
         )}
 
-        {/* Admin Console */}
+        {/* Console Admin */}
         {activeTab === 'admin' && user && !user.isAnonymous && (
-          <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up">
+          <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up pb-60">
             <header className="mb-20 border-b border-rose-100 pb-8 flex justify-between items-center">
               <h2 className="font-serif text-6xl tracking-tighter text-rose-600 flex items-center gap-4"><Lock size={40} /> Console</h2>
-              <button onClick={handleLogout} className="text-neutral-400 hover:text-rose-600"><LogOut size={24} /></button>
+              <button onClick={handleLogout} className="text-neutral-400 hover:text-rose-600 font-bold text-[10px] uppercase tracking-widest border border-neutral-100 px-4 py-2">Déconnexion</button>
             </header>
 
-            <div className="grid lg:grid-cols-2 gap-20">
-              <div className="space-y-12">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400">Ajouter Projet</h3>
-                <form onSubmit={addProject} className="space-y-6 bg-neutral-50 p-10 shadow-sm">
-                  <input type="text" placeholder="Titre" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none" value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} required />
-                  <input type="text" placeholder="Catégorie" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none" value={newProject.category} onChange={e => setNewProject({ ...newProject, category: e.target.value })} required />
-                  <textarea placeholder="Description" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none h-32" value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} required />
-                  <input type="text" placeholder="URL Image" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none" value={newProject.image} onChange={e => setNewProject({ ...newProject, image: e.target.value })} required />
-                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest">Publier</button>
+            <div className="grid lg:grid-cols-2 gap-x-20 gap-y-32">
+
+              {/* Projets */}
+              <div className="space-y-10">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer les Projets</h3>
+                <form onSubmit={(e) => addDocToFirestore('projects', newProject, setNewProject, { title: '', category: '', description: '', image: '' })(e)} className="space-y-6 bg-neutral-50 p-10">
+                  <input type="text" placeholder="Titre" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} required />
+                  <input type="text" placeholder="Catégorie" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newProject.category} onChange={e => setNewProject({ ...newProject, category: e.target.value })} required />
+                  <textarea placeholder="Description" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-24" value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} required />
+                  <input type="text" placeholder="URL Image" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newProject.image} onChange={e => setNewProject({ ...newProject, image: e.target.value })} required />
+                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold">Publier Projet</button>
                 </form>
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                   {projects.map(p => (
                     <div key={p.id} className="flex items-center justify-between p-4 bg-white border border-neutral-100">
-                      <span className="font-serif">{p.title}</span>
-                      <button onClick={() => deleteItem('projects', p.id)} className="text-rose-600"><Trash2 size={18} /></button>
+                      <span className="font-serif truncate mr-4">{p.title}</span>
+                      <button onClick={() => deleteItem('projects', p.id)} className="text-rose-600 flex-shrink-0"><Trash2 size={18} /></button>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="space-y-12">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400">Ajouter Note</h3>
-                <form onSubmit={addJournalEntry} className="space-y-6 bg-neutral-50 p-10 shadow-sm">
-                  <input type="text" placeholder="Titre de la note" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none" value={newPost.title} onChange={e => setNewPost({ ...newPost, title: e.target.value })} required />
-                  <textarea placeholder="Contenu de la réflexion..." className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none h-64" value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} required />
-                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest">Enregistrer</button>
+              {/* Journal */}
+              <div className="space-y-10">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer le Journal</h3>
+                <form onSubmit={(e) => addDocToFirestore('journal', newPost, setNewPost, { title: '', content: '' })(e)} className="space-y-6 bg-neutral-50 p-10">
+                  <input type="text" placeholder="Titre de la note" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newPost.title} onChange={e => setNewPost({ ...newPost, title: e.target.value })} required />
+                  <textarea placeholder="Réflexion..." className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-44" value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} required />
+                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold">Enregistrer Note</button>
                 </form>
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                   {journal.map(post => (
                     <div key={post.id} className="flex items-center justify-between p-4 bg-white border border-neutral-100">
-                      <span className="font-serif">{post.title}</span>
-                      <button onClick={() => deleteItem('journal', post.id)} className="text-rose-600"><Trash2 size={18} /></button>
+                      <span className="font-serif truncate mr-4">{post.title}</span>
+                      <button onClick={() => deleteItem('journal', post.id)} className="text-rose-600 flex-shrink-0"><Trash2 size={18} /></button>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* Expérience */}
+              <div className="space-y-10">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer les Expériences</h3>
+                <form onSubmit={(e) => addDocToFirestore('experience', newExp, setNewExp, { company: '', role: '', period: '', description: '' })(e)} className="space-y-6 bg-neutral-50 p-10">
+                  <input type="text" placeholder="Entreprise" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.company} onChange={e => setNewExp({ ...newExp, company: e.target.value })} required />
+                  <input type="text" placeholder="Rôle" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.role} onChange={e => setNewExp({ ...newExp, role: e.target.value })} required />
+                  <input type="text" placeholder="Période (ex: 2023 - 2024)" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.period} onChange={e => setNewExp({ ...newExp, period: e.target.value })} required />
+                  <textarea placeholder="Détails..." className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-24" value={newExp.description} onChange={e => setNewExp({ ...newExp, description: e.target.value })} required />
+                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold">Ajouter Expérience</button>
+                </form>
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                  {experience.map(exp => (
+                    <div key={exp.id} className="flex items-center justify-between p-4 bg-white border border-neutral-100">
+                      <span className="font-serif truncate mr-4">{exp.role} @ {exp.company}</span>
+                      <button onClick={() => deleteItem('experience', exp.id)} className="text-rose-600 flex-shrink-0"><Trash2 size={18} /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Formation */}
+              <div className="space-y-10">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer les Formations</h3>
+                <form onSubmit={(e) => addDocToFirestore('education', newEdu, setNewEdu, { school: '', degree: '', period: '', description: '' })(e)} className="space-y-6 bg-neutral-50 p-10">
+                  <input type="text" placeholder="École" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newEdu.school} onChange={e => setNewEdu({ ...newEdu, school: e.target.value })} required />
+                  <input type="text" placeholder="Diplôme" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newEdu.degree} onChange={e => setNewEdu({ ...newEdu, degree: e.target.value })} required />
+                  <input type="text" placeholder="Période" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newEdu.period} onChange={e => setNewEdu({ ...newEdu, period: e.target.value })} required />
+                  <textarea placeholder="Détails..." className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-24" value={newEdu.description} onChange={e => setNewEdu({ ...newEdu, description: e.target.value })} required />
+                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold">Ajouter Formation</button>
+                </form>
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                  {education.map(edu => (
+                    <div key={edu.id} className="flex items-center justify-between p-4 bg-white border border-neutral-100">
+                      <span className="font-serif truncate mr-4">{edu.degree} @ {edu.school}</span>
+                      <button onClick={() => deleteItem('education', edu.id)} className="text-rose-600 flex-shrink-0"><Trash2 size={18} /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Photographie */}
+              <div className="space-y-10 lg:col-span-2">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer la Galerie Photo</h3>
+                <form onSubmit={(e) => addDocToFirestore('photos', newPhoto, setNewPhoto, { image: '', caption: '' })(e)} className="bg-neutral-50 p-10 grid md:grid-cols-2 gap-10">
+                  <div className="space-y-6">
+                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 p-12 hover:border-neutral-950 transition-colors cursor-pointer bg-white">
+                      {newPhoto.image ? (
+                        <img src={newPhoto.image} className="w-full max-h-40 object-contain mb-4" />
+                      ) : (
+                        <Upload size={32} className="text-neutral-300 mb-2" />
+                      )}
+                      <span className="text-[10px] font-bold uppercase">Sélectionner un fichier</span>
+                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, setNewPhoto, 'image')} />
+                    </label>
+                    <input type="text" placeholder="Légende (Optionnel)" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newPhoto.caption} onChange={e => setNewPhoto({ ...newPhoto, caption: e.target.value })} />
+                    <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest">Ajouter à la galerie</button>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 overflow-y-auto max-h-[400px]">
+                    {photos.map(photo => (
+                      <div key={photo.id} className="relative aspect-square border border-neutral-100 group">
+                        <img src={photo.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0" />
+                        <button onClick={() => deleteItem('photos', photo.id)} className="absolute top-1 right-1 bg-white p-1 text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"><Trash2 size={14} /></button>
+                      </div>
+                    ))}
+                  </div>
+                </form>
+              </div>
+
             </div>
           </section>
         )}
