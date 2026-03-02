@@ -279,7 +279,7 @@ const App = () => {
             <div className="max-w-[1400px] mx-auto px-8 py-20">
               <div className="mb-32">
                 <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-neutral-400 mb-8">EPITA — Cycle Préparatoire</p>
-                <h1 className="font-serif text-7xl md:text-9xl lg:text-[11rem] leading-[0.85] tracking-tighter mb-12 italic">L'Art de la Logique.</h1>
+                <h1 className="font-serif text-7xl md:text-9xl lg:text-[11rem] leading-[0.85] tracking-tighter mb-12 italic">Futur Ingénieur.</h1>
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-neutral-100 border border-neutral-100">
