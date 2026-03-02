@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Github, Linkedin, ArrowRight, X,
   Lock, Plus, Trash2, LogOut, Newspaper, Briefcase,
-  GraduationCap, User, Camera, Menu
+  GraduationCap, User, Camera, Menu, Send
 } from 'lucide-react';
 
 // Firebase Imports
@@ -54,6 +54,9 @@ const App = () => {
 
   const [newProject, setNewProject] = useState({ title: '', category: '', description: '', image: '' });
   const [newPost, setNewPost] = useState({ title: '', content: '' });
+
+  // Contact Form State
+  const [contactData, setContactData] = useState({ name: '', email: '', subject: '', message: '' });
 
   useEffect(() => {
     const initAuth = async () => {
@@ -147,6 +150,12 @@ const App = () => {
     await deleteDoc(doc(db, 'artifacts', portfolioId, 'public', 'data', col, id));
   };
 
+  const handleSubmitContact = (e) => {
+    e.preventDefault();
+    const mailtoLink = `mailto:louisdacosta@etik.com?subject=${encodeURIComponent(contactData.subject)}&body=${encodeURIComponent("De: " + contactData.name + " (" + contactData.email + ")\n\n" + contactData.message)}`;
+    window.location.href = mailtoLink;
+  };
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-white flex items-center justify-center">
@@ -159,9 +168,9 @@ const App = () => {
     { id: 'experience', label: 'Expérience' },
     { id: 'projects', label: 'Projets' },
     { id: 'education', label: 'Formation' },
-    { id: 'about', label: 'À propos' },
     { id: 'photography', label: 'Photographie' },
-    { id: 'journal', label: 'Journal' }
+    { id: 'journal', label: 'Journal' },
+    { id: 'about', label: 'À propos' }
   ];
 
   return (
@@ -212,7 +221,7 @@ const App = () => {
             ) : (
               <button onClick={handleLogout} className="text-neutral-400 hover:text-rose-600"><LogOut size={20} /></button>
             )}
-            <a href="mailto:louis@epita.fr" className="bg-neutral-950 text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all">Me contacter</a>
+            <button onClick={() => handleNav('contact')} className="bg-neutral-950 text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all">Me contacter</button>
           </div>
 
           <button className="lg:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -228,6 +237,7 @@ const App = () => {
           {navItems.map(item => (
             <button key={item.id} onClick={() => handleNav(item.id)} className="text-left font-serif text-5xl tracking-tighter text-neutral-400">{item.label}.</button>
           ))}
+          <button onClick={() => handleNav('contact')} className="text-left font-serif text-5xl tracking-tighter text-neutral-400">Contact.</button>
           {user && !user.isAnonymous && <button onClick={() => handleNav('admin')} className="text-left font-serif text-5xl tracking-tighter text-rose-600">Admin.</button>}
         </div>
       </div>
@@ -248,9 +258,9 @@ const App = () => {
                   { id: 'experience', title: 'Expérience', desc: 'Mon parcours technique', icon: <Briefcase size={20} /> },
                   { id: 'projects', title: 'Projets', desc: 'Galerie de travaux', icon: <ArrowRight size={20} /> },
                   { id: 'education', title: 'Formation', desc: 'Cursus académique', icon: <GraduationCap size={20} /> },
-                  { id: 'about', title: 'À Propos', desc: 'Ma vision du code', icon: <User size={20} /> },
                   { id: 'photography', title: 'Photographie', desc: 'Regards extérieurs', icon: <Camera size={20} /> },
-                  { id: 'journal', title: 'Journal', desc: 'Notes & Réflexions', icon: <Newspaper size={20} /> }
+                  { id: 'journal', title: 'Journal', desc: 'Notes & Réflexions', icon: <Newspaper size={20} /> },
+                  { id: 'about', title: 'À Propos', desc: 'Ma vision du code', icon: <User size={20} /> }
                 ].map((room) => (
                   <button
                     key={room.id}
@@ -363,6 +373,64 @@ const App = () => {
                 </article>
               ))}
               {journal.length === 0 && <p className="font-serif text-2xl italic text-neutral-300">Journal vide pour le moment.</p>}
+            </div>
+          </section>
+        )}
+
+        {/* Contact Form */}
+        {activeTab === 'contact' && (
+          <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in-up">
+            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Contact.</h2>
+            <div className="grid md:grid-cols-12 gap-16">
+              <div className="md:col-span-5 space-y-8">
+                <p className="text-xl font-light text-neutral-500 leading-relaxed italic">
+                  Une question sur un projet ? Une opportunité de collaboration ? N'hésitez pas à me contacter directement via ce formulaire.
+                </p>
+                <div className="pt-8">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Direct</p>
+                  <p className="font-serif text-lg">louisdacosta@etik.com</p>
+                </div>
+              </div>
+              <div className="md:col-span-7">
+                <form onSubmit={handleSubmitContact} className="space-y-8">
+                  <div className="grid grid-cols-2 gap-8">
+                    <input
+                      type="text"
+                      placeholder="Nom"
+                      className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950"
+                      value={contactData.name}
+                      onChange={(e) => setContactData({ ...contactData, name: e.target.value })}
+                      required
+                    />
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950"
+                      value={contactData.email}
+                      onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Objet"
+                    className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950"
+                    value={contactData.subject}
+                    onChange={(e) => setContactData({ ...contactData, subject: e.target.value })}
+                    required
+                  />
+                  <textarea
+                    placeholder="Message"
+                    className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 h-32"
+                    value={contactData.message}
+                    onChange={(e) => setContactData({ ...contactData, message: e.target.value })}
+                    required
+                  />
+                  <button type="submit" className="flex items-center gap-4 bg-neutral-950 text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-all">
+                    Envoyer le message <Send size={16} />
+                  </button>
+                </form>
+              </div>
             </div>
           </section>
         )}
