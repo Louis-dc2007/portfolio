@@ -4,8 +4,6 @@ import {
   Lock, Plus, Trash2, LogOut, Newspaper, Briefcase,
   GraduationCap, User, Camera, Menu, Send, Upload, Image as ImageIcon
 } from 'lucide-react';
-
-// Firebase Imports
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
@@ -24,7 +22,6 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 
-// --- CONFIGURATION FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyD5D0ScIwI-uE2rb5kW6E8Vyf1UhlgOlco",
   authDomain: "portfolio-3ee26.firebaseapp.com",
@@ -49,21 +46,18 @@ const App = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Data States
   const [projects, setProjects] = useState([]);
   const [journal, setJournal] = useState([]);
   const [experience, setExperience] = useState([]);
   const [education, setEducation] = useState([]);
   const [photos, setPhotos] = useState([]);
 
-  // Admin Forms States
   const [newProject, setNewProject] = useState({ title: '', category: '', description: '', image: '' });
-  const [newPost, setNewPost] = useState({ title: '', content: '' });
+  const [newPost, setNewPost] = useState({ title: '', content: '', image: '' });
   const [newExp, setNewExp] = useState({ company: '', role: '', period: '', description: '' });
   const [newEdu, setNewEdu] = useState({ school: '', degree: '', period: '', description: '' });
   const [newPhoto, setNewPhoto] = useState({ image: '', caption: '' });
 
-  // Contact Form State
   const [contactData, setContactData] = useState({ name: '', email: '', subject: '', message: '' });
 
   useEffect(() => {
@@ -74,7 +68,7 @@ const App = () => {
         } else {
           setUser(null);
           if (!currentUser) {
-            signInAnonymously(auth).catch((err) => console.error("Auth Anonyme:", err));
+            signInAnonymously(auth).catch((err) => { });
           }
         }
         setIsLoading(false);
@@ -94,8 +88,7 @@ const App = () => {
           const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           data.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
           setter(data);
-        },
-        (error) => console.error(`Erreur sur ${collectionName}:`, error)
+        }
       );
     };
 
@@ -150,23 +143,20 @@ const App = () => {
   const addDocToFirestore = async (col, data, resetter, initialData) => {
     if (!user || user.isAnonymous) return;
     try {
-      await addDoc(collection(db, 'artifacts', portfolioId, 'public', 'data', col), {
-        ...data,
-        createdAt: serverTimestamp()
-      });
+      const payload = { ...data, createdAt: serverTimestamp() };
+      if (col === 'journal') {
+        payload.date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+      await addDoc(collection(db, 'artifacts', portfolioId, 'public', 'data', col), payload);
       resetter(initialData);
-    } catch (err) {
-      console.error("Erreur d'ajout:", err);
-    }
+    } catch (err) { }
   };
 
   const deleteItem = async (col, id) => {
     if (!user || user.isAnonymous) return;
     try {
       await deleteDoc(doc(db, 'artifacts', portfolioId, 'public', 'data', col, id));
-    } catch (err) {
-      console.error("Erreur de suppression:", err);
-    }
+    } catch (err) { }
   };
 
   const handleSubmitContact = (e) => {
@@ -197,7 +187,6 @@ const App = () => {
   return (
     <div className="min-h-screen bg-white text-neutral-950 font-sans selection:bg-neutral-900 selection:text-white">
 
-      {/* Login Modal */}
       {showLogin && (
         <div className="fixed inset-0 bg-white/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
           <div className="bg-white p-10 border border-neutral-200 shadow-2xl max-w-md w-full relative">
@@ -216,7 +205,6 @@ const App = () => {
         </div>
       )}
 
-      {/* Navigation - Uniquement si pas sur l'accueil */}
       {activeTab !== 'home' && (
         <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-xl z-50 border-b border-neutral-100">
           <div className="max-w-[1600px] mx-auto px-8 h-24 flex items-center justify-between">
@@ -253,7 +241,6 @@ const App = () => {
         </nav>
       )}
 
-      {/* Mobile Menu */}
       <div className={`fixed inset-0 bg-white z-[60] transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'} lg:hidden pt-24`}>
         <div className="flex flex-col justify-center px-12 h-full space-y-8">
           <button onClick={() => handleNav('home')} className="text-left font-serif text-5xl tracking-tighter">Accueil.</button>
@@ -267,7 +254,6 @@ const App = () => {
 
       <main className={`${activeTab !== 'home' ? 'pt-24' : ''} min-h-screen`}>
 
-        {/* Hall du Musée (Home) */}
         {activeTab === 'home' && (
           <section className="animate-fade-in-up">
             <div className="max-w-[1400px] mx-auto px-8 py-20">
@@ -300,7 +286,6 @@ const App = () => {
           </section>
         )}
 
-        {/* Expérience Section */}
         {activeTab === 'experience' && (
           <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 pb-12">Expérience.</h2>
@@ -320,7 +305,6 @@ const App = () => {
           </section>
         )}
 
-        {/* Projets Section */}
         {activeTab === 'projects' && (
           <section className="max-w-[1600px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-8xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Projets.</h2>
@@ -328,7 +312,7 @@ const App = () => {
               {projects.map(p => (
                 <div key={p.id} className="group">
                   <div className="aspect-[4/3] bg-neutral-50 overflow-hidden mb-8">
-                    <img src={p.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt={p.title} />
+                    <img src={p.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" alt={p.title} />
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">{p.category}</span>
                   <h3 className="font-serif text-4xl mt-4 mb-6">{p.title}</h3>
@@ -340,7 +324,6 @@ const App = () => {
           </section>
         )}
 
-        {/* Formation Section */}
         {activeTab === 'education' && (
           <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 pb-12">Formation.</h2>
@@ -357,23 +340,21 @@ const App = () => {
           </section>
         )}
 
-        {/* À Propos Section */}
         {activeTab === 'about' && (
           <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up">
             <div className="grid lg:grid-cols-2 gap-24 items-center">
-              <div className="aspect-[3/4] bg-neutral-100 overflow-hidden grayscale">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover" alt="Portrait" />
+              <div className="aspect-[3/4] bg-neutral-100 overflow-hidden">
+                <img src="assets/img/photo_profil.jpg" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" alt="Portrait" />
               </div>
               <div className="space-y-12">
                 <h2 className="font-serif text-8xl tracking-tighter italic">Bio.</h2>
-                <p className="text-3xl font-light leading-tight text-neutral-800">Passionné par la structure et l'élégance algorithmique, je conçois le code comme une architecture invisible.</p>
+                <p className="text-3xl font-light leading-tight text-neutral-800">Passionné par l'informatique, je développe mes compétences via l'EPITA et des projets personnels.</p>
                 <p className="text-xl font-light text-neutral-500 leading-relaxed">Étudiant à l'EPITA Paris, je combine rigueur technique et curiosité créative.</p>
               </div>
             </div>
           </section>
         )}
 
-        {/* Photographie Section */}
         {activeTab === 'photography' && (
           <section className="max-w-[1400px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Photographie.</h2>
@@ -393,16 +374,20 @@ const App = () => {
           </section>
         )}
 
-        {/* Journal Section */}
         {activeTab === 'journal' && (
           <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Journal.</h2>
-            <div className="space-y-32">
+            <div className="space-y-40">
               {journal.map(post => (
                 <article key={post.id} className="relative pl-16 border-l border-neutral-100 hover:border-neutral-950 transition-colors duration-500">
                   <span className="absolute left-0 top-0 -translate-x-1/2 w-4 h-4 bg-white border border-neutral-950 rounded-full"></span>
                   <time className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-6 block">{post.date}</time>
                   <h3 className="font-serif text-5xl mb-8 tracking-tighter">{post.title}</h3>
+                  {post.image && (
+                    <div className="mb-10 aspect-video bg-neutral-50 overflow-hidden">
+                      <img src={post.image} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" alt={post.title} />
+                    </div>
+                  )}
                   <div className="text-2xl text-neutral-500 font-light leading-relaxed whitespace-pre-wrap italic">"{post.content}"</div>
                 </article>
               ))}
@@ -411,7 +396,6 @@ const App = () => {
           </section>
         )}
 
-        {/* Contact Section */}
         {activeTab === 'contact' && (
           <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Contact.</h2>
@@ -439,7 +423,6 @@ const App = () => {
           </section>
         )}
 
-        {/* Console Admin Section */}
         {activeTab === 'admin' && user && !user.isAnonymous && (
           <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up pb-60">
             <header className="mb-20 border-b border-rose-100 pb-8 flex justify-between items-center">
@@ -449,7 +432,6 @@ const App = () => {
 
             <div className="grid lg:grid-cols-2 gap-x-20 gap-y-32">
 
-              {/* Projets Admin */}
               <div className="space-y-10">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer les Projets</h3>
                 <form
@@ -462,18 +444,15 @@ const App = () => {
                   <input type="text" placeholder="Titre" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} required />
                   <input type="text" placeholder="Catégorie" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newProject.category} onChange={e => setNewProject({ ...newProject, category: e.target.value })} required />
                   <textarea placeholder="Description" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-24" value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} required />
-
-                  {/* Upload Image Projet */}
                   <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 p-8 hover:border-neutral-950 transition-colors cursor-pointer bg-white">
                     {newProject.image ? (
                       <img src={newProject.image} className="max-h-32 mb-2" alt="Aperçu" />
                     ) : (
                       <Upload size={24} className="text-neutral-300 mb-2" />
                     )}
-                    <span className="text-[10px] font-bold uppercase">Image du projet (PC)</span>
+                    <span className="text-[10px] font-bold uppercase">Image du projet</span>
                     <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, setNewProject, 'image')} />
                   </label>
-
                   <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest">Publier Projet</button>
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
@@ -486,18 +465,26 @@ const App = () => {
                 </div>
               </div>
 
-              {/* Journal Admin */}
               <div className="space-y-10">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer le Journal</h3>
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    addDocToFirestore('journal', newPost, setNewPost, { title: '', content: '' });
+                    addDocToFirestore('journal', newPost, setNewPost, { title: '', content: '', image: '' });
                   }}
                   className="space-y-6 bg-neutral-50 p-10"
                 >
                   <input type="text" placeholder="Titre de la note" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newPost.title} onChange={e => setNewPost({ ...newPost, title: e.target.value })} required />
                   <textarea placeholder="Réflexion..." className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-44" value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} required />
+                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 p-8 hover:border-neutral-950 transition-colors cursor-pointer bg-white">
+                    {newPost.image ? (
+                      <img src={newPost.image} className="max-h-32 mb-2" alt="Aperçu" />
+                    ) : (
+                      <Upload size={24} className="text-neutral-300 mb-2" />
+                    )}
+                    <span className="text-[10px] font-bold uppercase">Image illustrative</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, setNewPost, 'image')} />
+                  </label>
                   <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest">Enregistrer Note</button>
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
@@ -510,7 +497,6 @@ const App = () => {
                 </div>
               </div>
 
-              {/* Expérience Admin */}
               <div className="space-y-10">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer les Expériences</h3>
                 <form
@@ -522,7 +508,7 @@ const App = () => {
                 >
                   <input type="text" placeholder="Entreprise" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.company} onChange={e => setNewExp({ ...newExp, company: e.target.value })} required />
                   <input type="text" placeholder="Rôle" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.role} onChange={e => setNewExp({ ...newExp, role: e.target.value })} required />
-                  <input type="text" placeholder="Période (ex: 2023 - 2024)" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.period} onChange={e => setNewExp({ ...newExp, period: e.target.value })} required />
+                  <input type="text" placeholder="Période" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.period} onChange={e => setNewExp({ ...newExp, period: e.target.value })} required />
                   <textarea placeholder="Détails..." className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-24" value={newExp.description} onChange={e => setNewExp({ ...newExp, description: e.target.value })} required />
                   <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest">Ajouter Expérience</button>
                 </form>
@@ -536,7 +522,6 @@ const App = () => {
                 </div>
               </div>
 
-              {/* Formation Admin */}
               <div className="space-y-10">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer les Formations</h3>
                 <form
@@ -562,7 +547,6 @@ const App = () => {
                 </div>
               </div>
 
-              {/* Photographie Admin */}
               <div className="space-y-10 lg:col-span-2">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer la Galerie Photo</h3>
                 <form
@@ -582,13 +566,13 @@ const App = () => {
                       <span className="text-[10px] font-bold uppercase">Sélectionner un fichier</span>
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, setNewPhoto, 'image')} />
                     </label>
-                    <input type="text" placeholder="Légende (Optionnel)" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newPhoto.caption} onChange={e => setNewPhoto({ ...newPhoto, caption: e.target.value })} />
+                    <input type="text" placeholder="Légende" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newPhoto.caption} onChange={e => setNewPhoto({ ...newPhoto, caption: e.target.value })} />
                     <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest">Ajouter à la galerie</button>
                   </div>
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 overflow-y-auto max-h-[400px]">
                     {photos.map(photo => (
                       <div key={photo.id} className="relative aspect-square border border-neutral-100 group">
-                        <img src={photo.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0" alt="Galerie" />
+                        <img src={photo.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="Galerie" />
                         <button onClick={() => deleteItem('photos', photo.id)} className="absolute top-1 right-1 bg-white p-1 text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"><Trash2 size={14} /></button>
                       </div>
                     ))}
@@ -601,15 +585,24 @@ const App = () => {
         )}
       </main>
 
-      {/* Footer */}
       <footer className="py-24 border-t border-neutral-100 mt-20 bg-neutral-50/50">
         <div className="max-w-[1600px] mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="text-center md:text-left">
             <h4 className="font-serif text-3xl font-bold tracking-tighter mb-4">Louis.</h4>
             <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">EPITA Paris — Portfolio</p>
           </div>
-          <div className="flex gap-10 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
             <button onClick={() => handleNav('home')} className="hover:text-neutral-950 transition-colors">Accueil</button>
+            <button onClick={() => handleNav('contact')} className="hover:text-neutral-950 transition-colors text-neutral-950 underline underline-offset-4 decoration-neutral-200">Me contacter</button>
+            {user && !user.isAnonymous ? (
+              <button onClick={() => handleNav('admin')} className="hover:text-rose-600 transition-colors flex items-center gap-2">
+                <Lock size={10} /> Console Admin
+              </button>
+            ) : (
+              <button onClick={() => setShowLogin(true)} className="hover:text-neutral-950 transition-colors flex items-center gap-2">
+                <Lock size={10} /> Accès Admin
+              </button>
+            )}
             <a href="#" className="hover:text-neutral-950 transition-colors">GitHub</a>
             <a href="#" className="hover:text-neutral-950 transition-colors">LinkedIn</a>
           </div>
