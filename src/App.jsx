@@ -289,7 +289,7 @@ const App = () => {
                   { id: 'education', title: 'Formation', desc: 'Cursus académique', icon: <GraduationCap size={20} /> },
                   { id: 'photography', title: 'Photographie', desc: 'Regards extérieurs', icon: <Camera size={20} /> },
                   { id: 'journal', title: 'Journal', desc: 'Notes & Réflexions', icon: <Newspaper size={20} /> },
-                  { id: 'about', title: 'À Propos', desc: 'Ma vision du code', icon: <User size={20} /> }
+                  { id: 'about', title: 'À Propos', desc: 'Ma vision', icon: <User size={20} /> }
                 ].map((room) => (
                   <button
                     key={room.id}
@@ -622,7 +622,7 @@ const App = () => {
         <div className="max-w-[1600px] mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="text-center md:text-left">
             <h4 className="font-serif text-3xl font-bold tracking-tighter mb-4">Louis.</h4>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">EPITA Paris — Portfolio</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">LDC — Portfolio</p>
           </div>
           <div className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
             <button onClick={() => handleNav('home')} className="hover:text-neutral-950 transition-colors">Accueil</button>
@@ -636,8 +636,8 @@ const App = () => {
                 <Lock size={10} /> Accès Admin
               </button>
             )}
-            <a href="#" className="hover:text-neutral-950 transition-colors">GitHub</a>
-            <a href="#" className="hover:text-neutral-950 transition-colors">LinkedIn</a>
+            <a href="https://www.instagram.com/louis_dc07/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-950 transition-colors">Instagram</a>
+            <a href="https://www.linkedin.com/in/louis-da-costa2007/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-950 transition-colors">LinkedIn</a>
           </div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-300">© {new Date().getFullYear()} — Propriété de Louis D.</p>
         </div>
