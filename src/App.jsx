@@ -152,7 +152,9 @@ const App = () => {
 
   const handleSubmitContact = (e) => {
     e.preventDefault();
-    const mailtoLink = `mailto:louisdacosta@etik.com?subject=${encodeURIComponent(contactData.subject)}&body=${encodeURIComponent("De: " + contactData.name + " (" + contactData.email + ")\n\n" + contactData.message)}`;
+    const subject = encodeURIComponent(contactData.subject || "Contact depuis le Portfolio");
+    const body = encodeURIComponent(`Nom: ${contactData.name}\nEmail: ${contactData.email}\n\nMessage:\n${contactData.message}`);
+    const mailtoLink = `mailto:louisdacosta@etik.com?subject=${subject}&body=${body}`;
     window.location.href = mailtoLink;
   };
 
