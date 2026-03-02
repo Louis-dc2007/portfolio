@@ -21,6 +21,7 @@ import {
   doc,
   serverTimestamp
 } from 'firebase/firestore';
+import profileImg from './assets/img/photo_profil.jpg';
 
 const firebaseConfig = {
   apiKey: "AIzaSyD5D0ScIwI-uE2rb5kW6E8Vyf1UhlgOlco",
@@ -344,7 +345,7 @@ const App = () => {
           <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up">
             <div className="grid lg:grid-cols-2 gap-24 items-center">
               <div className="aspect-[3/4] bg-neutral-100 overflow-hidden">
-                <img src="assets/img/photo_profil.jpg" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" alt="Portrait" />
+                <img src={profileImg} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" alt="Portrait" />
               </div>
               <div className="space-y-12">
                 <h2 className="font-serif text-8xl tracking-tighter italic">Bio.</h2>
