@@ -92,10 +92,10 @@ const App = () => {
         collection(db, 'artifacts', portfolioId, 'public', 'data', collectionName),
         (snapshot) => {
           const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          // Tri par date de création si disponible
           data.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
           setter(data);
-        }
+        },
+        (error) => console.error(`Erreur sur ${collectionName}:`, error)
       );
     };
 
@@ -162,7 +162,11 @@ const App = () => {
 
   const deleteItem = async (col, id) => {
     if (!user || user.isAnonymous) return;
-    await deleteDoc(doc(db, 'artifacts', portfolioId, 'public', 'data', col, id));
+    try {
+      await deleteDoc(doc(db, 'artifacts', portfolioId, 'public', 'data', col, id));
+    } catch (err) {
+      console.error("Erreur de suppression:", err);
+    }
   };
 
   const handleSubmitContact = (e) => {
@@ -261,7 +265,7 @@ const App = () => {
 
       <main className="pt-24 min-h-screen">
 
-        {/* Hall du Musée (Home) */}
+        {/* Home Section */}
         {activeTab === 'home' && (
           <section className="animate-fade-in-up">
             <div className="max-w-[1400px] mx-auto px-8 py-20">
@@ -294,7 +298,7 @@ const App = () => {
           </section>
         )}
 
-        {/* Expérience */}
+        {/* Expérience Section */}
         {activeTab === 'experience' && (
           <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 pb-12">Expérience.</h2>
@@ -314,7 +318,7 @@ const App = () => {
           </section>
         )}
 
-        {/* Projets */}
+        {/* Projets Section */}
         {activeTab === 'projects' && (
           <section className="max-w-[1600px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-8xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Projets.</h2>
@@ -334,7 +338,7 @@ const App = () => {
           </section>
         )}
 
-        {/* Formation */}
+        {/* Formation Section */}
         {activeTab === 'education' && (
           <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 pb-12">Formation.</h2>
@@ -351,7 +355,7 @@ const App = () => {
           </section>
         )}
 
-        {/* À Propos */}
+        {/* À Propos Section */}
         {activeTab === 'about' && (
           <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up">
             <div className="grid lg:grid-cols-2 gap-24 items-center">
@@ -367,7 +371,7 @@ const App = () => {
           </section>
         )}
 
-        {/* Photographie */}
+        {/* Photographie Section */}
         {activeTab === 'photography' && (
           <section className="max-w-[1400px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Photographie.</h2>
@@ -387,7 +391,7 @@ const App = () => {
           </section>
         )}
 
-        {/* Journal */}
+        {/* Journal Section */}
         {activeTab === 'journal' && (
           <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Journal.</h2>
@@ -405,7 +409,7 @@ const App = () => {
           </section>
         )}
 
-        {/* Contact Form */}
+        {/* Contact Section */}
         {activeTab === 'contact' && (
           <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in-up">
             <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Contact.</h2>
@@ -433,7 +437,7 @@ const App = () => {
           </section>
         )}
 
-        {/* Console Admin */}
+        {/* Console Admin Section */}
         {activeTab === 'admin' && user && !user.isAnonymous && (
           <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up pb-60">
             <header className="mb-20 border-b border-rose-100 pb-8 flex justify-between items-center">
@@ -443,15 +447,32 @@ const App = () => {
 
             <div className="grid lg:grid-cols-2 gap-x-20 gap-y-32">
 
-              {/* Projets */}
+              {/* Projets Admin */}
               <div className="space-y-10">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer les Projets</h3>
-                <form onSubmit={(e) => addDocToFirestore('projects', newProject, setNewProject, { title: '', category: '', description: '', image: '' })(e)} className="space-y-6 bg-neutral-50 p-10">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    addDocToFirestore('projects', newProject, setNewProject, { title: '', category: '', description: '', image: '' });
+                  }}
+                  className="space-y-6 bg-neutral-50 p-10"
+                >
                   <input type="text" placeholder="Titre" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} required />
                   <input type="text" placeholder="Catégorie" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newProject.category} onChange={e => setNewProject({ ...newProject, category: e.target.value })} required />
                   <textarea placeholder="Description" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-24" value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} required />
-                  <input type="text" placeholder="URL Image" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newProject.image} onChange={e => setNewProject({ ...newProject, image: e.target.value })} required />
-                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold">Publier Projet</button>
+
+                  {/* Upload Image Projet */}
+                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 p-8 hover:border-neutral-950 transition-colors cursor-pointer bg-white">
+                    {newProject.image ? (
+                      <img src={newProject.image} className="max-h-32 mb-2" alt="Aperçu" />
+                    ) : (
+                      <Upload size={24} className="text-neutral-300 mb-2" />
+                    )}
+                    <span className="text-[10px] font-bold uppercase">Image du projet (PC)</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, setNewProject, 'image')} />
+                  </label>
+
+                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest">Publier Projet</button>
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                   {projects.map(p => (
@@ -463,13 +484,19 @@ const App = () => {
                 </div>
               </div>
 
-              {/* Journal */}
+              {/* Journal Admin */}
               <div className="space-y-10">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer le Journal</h3>
-                <form onSubmit={(e) => addDocToFirestore('journal', newPost, setNewPost, { title: '', content: '' })(e)} className="space-y-6 bg-neutral-50 p-10">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    addDocToFirestore('journal', newPost, setNewPost, { title: '', content: '' });
+                  }}
+                  className="space-y-6 bg-neutral-50 p-10"
+                >
                   <input type="text" placeholder="Titre de la note" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newPost.title} onChange={e => setNewPost({ ...newPost, title: e.target.value })} required />
                   <textarea placeholder="Réflexion..." className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-44" value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} required />
-                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold">Enregistrer Note</button>
+                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest">Enregistrer Note</button>
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                   {journal.map(post => (
@@ -481,15 +508,21 @@ const App = () => {
                 </div>
               </div>
 
-              {/* Expérience */}
+              {/* Expérience Admin */}
               <div className="space-y-10">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer les Expériences</h3>
-                <form onSubmit={(e) => addDocToFirestore('experience', newExp, setNewExp, { company: '', role: '', period: '', description: '' })(e)} className="space-y-6 bg-neutral-50 p-10">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    addDocToFirestore('experience', newExp, setNewExp, { company: '', role: '', period: '', description: '' });
+                  }}
+                  className="space-y-6 bg-neutral-50 p-10"
+                >
                   <input type="text" placeholder="Entreprise" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.company} onChange={e => setNewExp({ ...newExp, company: e.target.value })} required />
                   <input type="text" placeholder="Rôle" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.role} onChange={e => setNewExp({ ...newExp, role: e.target.value })} required />
                   <input type="text" placeholder="Période (ex: 2023 - 2024)" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.period} onChange={e => setNewExp({ ...newExp, period: e.target.value })} required />
                   <textarea placeholder="Détails..." className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-24" value={newExp.description} onChange={e => setNewExp({ ...newExp, description: e.target.value })} required />
-                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold">Ajouter Expérience</button>
+                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest">Ajouter Expérience</button>
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                   {experience.map(exp => (
@@ -501,15 +534,21 @@ const App = () => {
                 </div>
               </div>
 
-              {/* Formation */}
+              {/* Formation Admin */}
               <div className="space-y-10">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer les Formations</h3>
-                <form onSubmit={(e) => addDocToFirestore('education', newEdu, setNewEdu, { school: '', degree: '', period: '', description: '' })(e)} className="space-y-6 bg-neutral-50 p-10">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    addDocToFirestore('education', newEdu, setNewEdu, { school: '', degree: '', period: '', description: '' });
+                  }}
+                  className="space-y-6 bg-neutral-50 p-10"
+                >
                   <input type="text" placeholder="École" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newEdu.school} onChange={e => setNewEdu({ ...newEdu, school: e.target.value })} required />
                   <input type="text" placeholder="Diplôme" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newEdu.degree} onChange={e => setNewEdu({ ...newEdu, degree: e.target.value })} required />
                   <input type="text" placeholder="Période" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newEdu.period} onChange={e => setNewEdu({ ...newEdu, period: e.target.value })} required />
                   <textarea placeholder="Détails..." className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-24" value={newEdu.description} onChange={e => setNewEdu({ ...newEdu, description: e.target.value })} required />
-                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold">Ajouter Formation</button>
+                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest">Ajouter Formation</button>
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                   {education.map(edu => (
@@ -521,14 +560,20 @@ const App = () => {
                 </div>
               </div>
 
-              {/* Photographie */}
+              {/* Photographie Admin */}
               <div className="space-y-10 lg:col-span-2">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer la Galerie Photo</h3>
-                <form onSubmit={(e) => addDocToFirestore('photos', newPhoto, setNewPhoto, { image: '', caption: '' })(e)} className="bg-neutral-50 p-10 grid md:grid-cols-2 gap-10">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    addDocToFirestore('photos', newPhoto, setNewPhoto, { image: '', caption: '' });
+                  }}
+                  className="bg-neutral-50 p-10 grid md:grid-cols-2 gap-10"
+                >
                   <div className="space-y-6">
                     <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 p-12 hover:border-neutral-950 transition-colors cursor-pointer bg-white">
                       {newPhoto.image ? (
-                        <img src={newPhoto.image} className="w-full max-h-40 object-contain mb-4" />
+                        <img src={newPhoto.image} className="w-full max-h-40 object-contain mb-4" alt="Aperçu" />
                       ) : (
                         <Upload size={32} className="text-neutral-300 mb-2" />
                       )}
@@ -541,7 +586,7 @@ const App = () => {
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 overflow-y-auto max-h-[400px]">
                     {photos.map(photo => (
                       <div key={photo.id} className="relative aspect-square border border-neutral-100 group">
-                        <img src={photo.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0" />
+                        <img src={photo.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0" alt="Galerie" />
                         <button onClick={() => deleteItem('photos', photo.id)} className="absolute top-1 right-1 bg-white p-1 text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"><Trash2 size={14} /></button>
                       </div>
                     ))}
@@ -554,6 +599,7 @@ const App = () => {
         )}
       </main>
 
+      {/* Footer */}
       <footer className="py-24 border-t border-neutral-100 mt-20 bg-neutral-50/50">
         <div className="max-w-[1600px] mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="text-center md:text-left">
