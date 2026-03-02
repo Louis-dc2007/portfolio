@@ -1,498 +1,434 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Github, Linkedin, ArrowRight, Menu, X, Lock, Plus, Trash2, Edit2 } from 'lucide-react';
+import {
+  Github, Linkedin, ArrowRight, X,
+  Lock, Plus, Trash2, LogOut, Newspaper, Briefcase,
+  GraduationCap, User, Home
+} from 'lucide-react';
+
+// Firebase Imports
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+  signInAnonymously
+} from 'firebase/auth';
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  query,
+  orderBy
+} from 'firebase/firestore';
+
+// --- CONFIGURATION FIREBASE ---
+const firebaseConfig = {
+  apiKey: "AIzaSyD5D0ScIwI-uE2rb5kW6E8Vyf1UhlgOlco",
+  authDomain: "portfolio-3ee26.firebaseapp.com",
+  projectId: "portfolio-3ee26",
+  storageBucket: "portfolio-3ee26.firebasestorage.app",
+  messagingSenderId: "654908808933",
+  appId: "1:654908808933:web:2e7e0f5d47c7aa9bb9be0c",
+  measurementId: "G-DPZC88V0F9"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const portfolioId = "portfolio-louis";
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('home');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const [projects, setProjects] = useState([]);
+  const [journal, setJournal] = useState([]);
+
+  const [newProject, setNewProject] = useState({ title: '', category: '', description: '', image: '' });
+  const [newPost, setNewPost] = useState({ title: '', content: '' });
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        setShowLogin(prev => !prev);
-      }
+    const initAuth = async () => {
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        if (currentUser && !currentUser.isAnonymous) {
+          setUser(currentUser);
+        } else {
+          setUser(null);
+          if (!currentUser) {
+            signInAnonymously(auth).catch((err) => console.error("Auth Anonyme:", err));
+          }
+        }
+        setIsLoading(false);
+      });
+      return unsubscribe;
     };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    initAuth();
   }, []);
 
-  const navItems = [
-    { id: 'experience', label: 'Expérience' },
-    { id: 'projects', label: 'Projets' },
-    { id: 'education', label: 'Formation' },
-    { id: 'about', label: 'À propos' },
-    { id: 'photography', label: 'Photographie' },
-    { id: 'journal', label: 'Journal' }
-  ];
+  useEffect(() => {
+    if (isLoading) return;
 
-  const projects = [
-    {
-      id: 1,
-      title: "Simulation d'Automates",
-      category: "C / Algorithmique",
-      description: "Moteur de résolution et de simulation d'automates finis déterministes. Une approche mathématique de la théorie des langages.",
-      image: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-      id: 2,
-      title: "Analyse de Données",
-      category: "Python / Data",
-      description: "Traitement par lots et analyse colorimétrique complexe. Génération de modèles prédictifs basés sur des données brutes.",
-      image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=800"
-    }
-  ];
+    const unsubProjects = onSnapshot(
+      collection(db, 'artifacts', portfolioId, 'public', 'data', 'projects'),
+      (snapshot) => {
+        setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      }
+    );
 
-  const photos = [
-    "https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&q=80&w=800"
-  ];
+    const unsubJournal = onSnapshot(
+      collection(db, 'artifacts', portfolioId, 'public', 'data', 'journal'),
+      (snapshot) => {
+        const sortedJournal = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        setJournal(sortedJournal);
+      }
+    );
 
-  const journalEntries = [
-    {
-      id: 1,
-      date: "02 Mars 2026",
-      content: "Aujourd'hui, j'ai implémenté un nouvel algorithme de tri. La complexité est bien meilleure que la version précédente. C'est fascinant de voir l'impact d'une structure de données adaptée.",
-      image: null
-    },
-    {
-      id: 2,
-      date: "28 Février 2026",
-      content: "Session photo argentique dans les rues de Paris ce matin. La lumière d'hiver est dure, très contrastée, parfaite pour le style que je recherche actuellement. Début du développement ce soir.",
-      image: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&q=80&w=800"
-    }
-  ];
+    return () => {
+      unsubProjects();
+      unsubJournal();
+    };
+  }, [isLoading]);
 
-  const handleNavClick = (id) => {
-    setActiveTab(id);
-    setIsMenuOpen(false);
-    window.scrollTo(0, 0);
-  };
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (password === 'admin123') {
-      setIsAdmin(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
-      setPassword('');
       setActiveTab('admin');
-    } else {
-      alert('Mot de passe incorrect');
+    } catch (error) {
+      alert("Erreur d'authentification");
     }
   };
 
-  const handleLogout = () => {
-    setIsAdmin(false);
+  const handleLogout = async () => {
+    await signOut(auth);
     setActiveTab('home');
   };
+
+  const addProject = async (e) => {
+    e.preventDefault();
+    if (!user || user.isAnonymous) return;
+    await addDoc(collection(db, 'artifacts', portfolioId, 'public', 'data', 'projects'), {
+      ...newProject,
+      createdAt: serverTimestamp()
+    });
+    setNewProject({ title: '', category: '', description: '', image: '' });
+  };
+
+  const addJournalEntry = async (e) => {
+    e.preventDefault();
+    if (!user || user.isAnonymous) return;
+    await addDoc(collection(db, 'artifacts', portfolioId, 'public', 'data', 'journal'), {
+      ...newPost,
+      date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+      createdAt: serverTimestamp()
+    });
+    setNewPost({ title: '', content: '' });
+  };
+
+  const deleteItem = async (col, id) => {
+    if (!user || user.isAnonymous) return;
+    await deleteDoc(doc(db, 'artifacts', portfolioId, 'public', 'data', col, id));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-neutral-200 border-t-neutral-950 rounded-full animate-spin"></div>
+          <span className="font-serif text-2xl tracking-tighter">Louis D.</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white text-neutral-950 font-sans selection:bg-neutral-900 selection:text-white">
 
-      <div className={`fixed inset-0 bg-neutral-950 z-[100] flex flex-col items-center justify-center transition-all duration-1000 ease-in-out ${isLoading ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
-        <div className="overflow-hidden">
-          <h1 className="text-white font-serif text-5xl md:text-7xl tracking-tighter animate-pulse">
-            Portfolio.
-          </h1>
-        </div>
-      </div>
-
+      {/* Login Modal */}
       {showLogin && (
-        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-[90] flex items-center justify-center">
-          <div className="bg-white p-8 border border-neutral-200 shadow-2xl max-w-md w-full relative">
-            <button
-              onClick={() => setShowLogin(false)}
-              className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-950"
-            >
-              <X size={20} />
+        <div className="fixed inset-0 bg-white/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
+          <div className="bg-white p-12 border border-neutral-200 shadow-2xl max-w-md w-full relative animate-fade-in-up">
+            <button onClick={() => setShowLogin(false)} className="absolute top-6 right-6 text-neutral-400 hover:text-neutral-950 transition-colors">
+              <X size={24} />
             </button>
-            <h2 className="font-serif text-3xl mb-6 flex items-center gap-3">
-              <Lock size={24} /> Accès Réservé
+            <h2 className="font-serif text-4xl mb-8 flex items-center gap-4 tracking-tighter">
+              <Lock size={28} /> Administration
             </h2>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-6">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500 mb-2">Mot de passe</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border-b border-neutral-200 py-2 focus:outline-none focus:border-neutral-950 transition-colors"
-                  placeholder="••••••••"
-                />
+                <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 block mb-2">Email</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 bg-transparent" placeholder="admin@portfolio.com" required />
               </div>
-              <button
-                type="submit"
-                className="w-full bg-neutral-950 text-white py-3 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-neutral-800 transition-colors"
-              >
-                Déverrouiller
-              </button>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 block mb-2">Mot de passe</label>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 bg-transparent" placeholder="••••••••" required />
+              </div>
+              <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-all">Se connecter</button>
             </form>
           </div>
         </div>
       )}
 
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-neutral-200">
-        <div className="max-w-[1400px] mx-auto px-6 h-24 flex items-center justify-between">
-          <button
-            onClick={() => handleNavClick('home')}
-            className="font-serif text-3xl font-bold tracking-tighter hover:opacity-70 transition-opacity"
-          >
-            Portfolio.
-          </button>
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-xl z-50 border-b border-neutral-100">
+        <div className="max-w-[1600px] mx-auto px-8 h-24 flex items-center justify-between">
+          <button onClick={() => setActiveTab('home')} className="font-serif text-3xl font-bold tracking-tighter hover:opacity-70 transition-opacity">Louis.</button>
 
-          <div className="hidden lg:flex space-x-10 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
-            {navItems.map(item => (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className={`hover:text-neutral-950 transition-colors py-2 ${activeTab === item.id ? 'text-neutral-950 border-b border-neutral-950' : ''}`}
-              >
-                {item.label}
+          <div className="hidden lg:flex items-center space-x-10 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+            {[
+              { id: 'projects', label: 'Projets', icon: <Briefcase size={12} /> },
+              { id: 'journal', label: 'Journal', icon: <Newspaper size={12} /> },
+              { id: 'experience', label: 'Parcours', icon: <GraduationCap size={12} /> },
+              { id: 'about', label: 'Bio', icon: <User size={12} /> }
+            ].map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 hover:text-neutral-950 transition-colors ${activeTab === tab.id ? 'text-neutral-950 border-b border-neutral-950 pb-1' : ''}`}>
+                {tab.label}
               </button>
             ))}
-            {isAdmin && (
-              <button
-                onClick={() => handleNavClick('admin')}
-                className={`hover:text-neutral-950 transition-colors py-2 text-rose-600 ${activeTab === 'admin' ? 'border-b border-rose-600' : ''}`}
-              >
-                Admin
+            {user && !user.isAnonymous && (
+              <button onClick={() => setActiveTab('admin')} className={`flex items-center gap-2 ${activeTab === 'admin' ? 'text-rose-600' : 'text-neutral-400 hover:text-rose-600 transition-colors'}`}>
+                <Lock size={12} /> Console
               </button>
             )}
           </div>
 
-          <div className="hidden lg:flex items-center gap-4">
-            {isAdmin && (
-              <button onClick={handleLogout} className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500 hover:text-neutral-950">
-                Déconnexion
-              </button>
+          <div className="flex items-center gap-6">
+            {(!user || user.isAnonymous) ? (
+              <button onClick={() => setShowLogin(true)} className="text-[10px] font-bold uppercase tracking-widest text-neutral-300 hover:text-neutral-950 transition-colors underline underline-offset-8">Accès</button>
+            ) : (
+              <button onClick={handleLogout} className="text-neutral-400 hover:text-rose-600 transition-colors"><LogOut size={20} /></button>
             )}
-            <a href="mailto:contact@exemple.com" className="px-6 py-3 border border-neutral-950 text-neutral-950 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-neutral-950 hover:text-white transition-all duration-500 rounded-none">
-              Contact
-            </a>
+            <a href="mailto:louis@epita.fr" className="bg-neutral-950 text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all hidden sm:block">Contact</a>
           </div>
-
-          <button
-            className="lg:hidden p-2 text-neutral-950"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X size={28} strokeWidth={1.5} /> : <Menu size={28} strokeWidth={1.5} />}
-          </button>
         </div>
       </nav>
 
-      <div className={`fixed inset-0 bg-white z-40 transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'} lg:hidden pt-24 flex flex-col`}>
-        <div className="flex-1 flex flex-col justify-center px-8 space-y-8">
-          <button
-            onClick={() => handleNavClick('home')}
-            className="text-left font-serif text-5xl tracking-tighter text-neutral-400 hover:text-neutral-950 transition-colors"
-          >
-            Accueil.
-          </button>
-          {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => handleNavClick(item.id)}
-              className={`text-left font-serif text-5xl tracking-tighter transition-colors ${activeTab === item.id ? 'text-neutral-950' : 'text-neutral-400 hover:text-neutral-950'}`}
-            >
-              {item.label}.
-            </button>
-          ))}
-          {isAdmin && (
-            <button
-              onClick={() => handleNavClick('admin')}
-              className={`text-left font-serif text-5xl tracking-tighter transition-colors text-rose-600`}
-            >
-              Admin.
-            </button>
-          )}
-        </div>
-        <div className="p-8 border-t border-neutral-200">
-          <a href="mailto:contact@exemple.com" className="block w-full text-center py-4 bg-neutral-950 text-white text-xs font-semibold uppercase tracking-[0.2em]">
-            Me contacter
-          </a>
-        </div>
-      </div>
-
+      {/* Main Content */}
       <main className="pt-24 min-h-screen">
+
+        {/* Home Section */}
         {activeTab === 'home' && (
-          <section className="h-[calc(100vh-6rem)] flex flex-col lg:flex-row">
-            <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-24 relative z-10">
-              <div className="animate-fade-in-up">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-500 mb-8 border-l border-neutral-950 pl-4">
-                  EPITA — Cycle Préparatoire
-                </p>
-                <h1 className="font-serif text-6xl md:text-8xl lg:text-[7rem] leading-[0.9] tracking-tighter mb-8">
-                  L'Art de<br />la Logique.
-                </h1>
-                <p className="text-lg text-neutral-600 max-w-md font-light leading-relaxed mb-12">
-                  Conception logicielle et architecture système. Une approche rigoureuse et esthétique de l'ingénierie informatique.
-                </p>
-                <div className="flex items-center gap-8">
-                  <button
-                    onClick={() => handleNavClick('projects')}
-                    className="group flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] hover:text-neutral-500 transition-colors"
-                  >
-                    Découvrir <ArrowRight className="group-hover:translate-x-2 transition-transform" size={16} />
-                  </button>
+          <section className="h-[calc(100vh-6rem)] flex flex-col lg:flex-row overflow-hidden animate-fade-in-up">
+            <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-32 py-20">
+              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-neutral-400 mb-10 inline-flex items-center gap-4">
+                <span className="w-12 h-px bg-neutral-950"></span> EPITA Ingénierie
+              </p>
+              <h1 className="font-serif text-7xl md:text-9xl lg:text-[10rem] leading-[0.85] tracking-tighter mb-12">Code &<br />Pureté.</h1>
+              <div className="flex gap-6 items-center">
+                <button onClick={() => setActiveTab('projects')} className="group flex items-center gap-4 text-xs font-bold uppercase tracking-widest bg-neutral-950 text-white px-10 py-5 hover:bg-neutral-800 transition-all">
+                  Portfolio <ArrowRight size={18} />
+                </button>
+                <div className="flex gap-4 text-neutral-400">
+                  <a href="#" className="hover:text-neutral-950 transition-colors"><Github size={20} /></a>
+                  <a href="#" className="hover:text-neutral-950 transition-colors"><Linkedin size={20} /></a>
                 </div>
               </div>
             </div>
-
-            <div className="hidden lg:block w-1/2 h-full bg-neutral-100 relative overflow-hidden p-8 pb-0">
-              <img
-                src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200"
-                alt="Architecture"
-                className="w-full h-full object-cover grayscale contrast-125 object-top"
-              />
+            <div className="w-full lg:w-1/2 h-full bg-neutral-50 relative overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?auto=format&fit=crop&q=80&w=1600" className="w-full h-full object-cover grayscale brightness-90 hover:grayscale-0 transition-all duration-1000" alt="Hero" />
             </div>
           </section>
         )}
 
-        {activeTab === 'experience' && (
-          <section className="max-w-[1000px] mx-auto px-6 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-5xl lg:text-7xl tracking-tighter mb-24 border-b border-neutral-200 pb-12">Expérience.</h2>
-            <div className="space-y-24">
-              <div className="grid md:grid-cols-12 gap-8 items-start">
-                <div className="md:col-span-3 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400 pt-2">
-                  2023 — Présent
-                </div>
-                <div className="md:col-span-9">
-                  <h3 className="font-serif text-3xl mb-4 text-neutral-950">Projets Académiques Intensifs</h3>
-                  <p className="text-neutral-600 font-light leading-relaxed text-lg mb-6">
-                    Développement de solutions logicielles dans le cadre de la classe préparatoire. Focalisation sur l'optimisation, la gestion de la mémoire et l'architecture algorithmique.
-                  </p>
-                  <div className="flex gap-4">
-                    <span className="text-xs border border-neutral-200 px-3 py-1 text-neutral-500">Algorithmique</span>
-                    <span className="text-xs border border-neutral-200 px-3 py-1 text-neutral-500">C</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-12 gap-8 items-start">
-                <div className="md:col-span-3 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400 pt-2">
-                  2022 — 2023
-                </div>
-                <div className="md:col-span-9">
-                  <h3 className="font-serif text-3xl mb-4 text-neutral-950">Initiation Développement</h3>
-                  <p className="text-neutral-600 font-light leading-relaxed text-lg">
-                    Premiers scripts Python et découverte de la logique de programmation. Création de petits outils d'automatisation.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {activeTab === 'education' && (
-          <section className="max-w-[1000px] mx-auto px-6 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-5xl lg:text-7xl tracking-tighter mb-24 border-b border-neutral-200 pb-12">Formation.</h2>
-            <div className="space-y-20">
-              <div className="group">
-                <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-4">
-                  <h3 className="font-serif text-4xl text-neutral-950 group-hover:pl-4 transition-all duration-300">EPITA</h3>
-                  <span className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400 mt-2 md:mt-0">2023 — Présent</span>
-                </div>
-                <p className="text-xl font-light text-neutral-600 border-l border-neutral-950 pl-6 ml-1 mt-6">
-                  Cycle Préparatoire. Formation d'ingénieur en intelligence informatique.
-                  Spécialisation en algorithmique, architecture des ordinateurs et mathématiques fondamentales.
-                </p>
-              </div>
-
-              <div className="group">
-                <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-4">
-                  <h3 className="font-serif text-4xl text-neutral-950 group-hover:pl-4 transition-all duration-300">Lycée Général</h3>
-                  <span className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400 mt-2 md:mt-0">Obtenu en 2023</span>
-                </div>
-                <p className="text-xl font-light text-neutral-600 border-l border-neutral-200 pl-6 ml-1 mt-6">
-                  Baccalauréat Scientifique. Spécialités Mathématiques et Physique-Chimie. Mention Très Bien.
-                </p>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {activeTab === 'about' && (
-          <section className="max-w-[1400px] mx-auto px-6 py-32 animate-fade-in-up">
-            <div className="grid lg:grid-cols-12 gap-16">
-              <div className="lg:col-span-5">
-                <h2 className="font-serif text-5xl lg:text-7xl tracking-tighter mb-12">À<br />propos.</h2>
-                <div className="flex gap-6">
-                  <a href="https://github.com" target="_blank" rel="noreferrer" className="p-4 border border-neutral-200 hover:border-neutral-950 transition-colors">
-                    <Github size={20} strokeWidth={1.5} />
-                  </a>
-                  <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="p-4 border border-neutral-200 hover:border-neutral-950 transition-colors">
-                    <Linkedin size={20} strokeWidth={1.5} />
-                  </a>
-                </div>
-              </div>
-
-              <div className="lg:col-span-7 space-y-16">
-                <div className="space-y-6">
-                  <p className="text-xl text-neutral-800 leading-relaxed font-light">
-                    Actuellement en première année de classe préparatoire à l'EPITA, mon quotidien est rythmé par la rigueur mathématique et la conception bas niveau.
-                  </p>
-                  <p className="text-xl text-neutral-800 leading-relaxed font-light">
-                    Je conçois le code non pas seulement comme un outil fonctionnel, mais comme une architecture qui se doit d'être élégante, lisible et performante. La créativité que j'exerce en photographie nourrit ma vision de l'ingénierie : un équilibre entre technique pure et composition visuelle.
-                  </p>
-                  <button className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] border-b border-neutral-950 pb-2 mt-8 hover:text-neutral-500 hover:border-neutral-500 transition-colors">
-                    Curriculum Vitae <BookOpen size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
+        {/* Projects Section */}
         {activeTab === 'projects' && (
-          <section className="max-w-[1400px] mx-auto px-6 py-32 animate-fade-in-up">
-            <div className="flex justify-between items-end mb-20 border-b border-neutral-200 pb-12">
-              <h2 className="font-serif text-5xl lg:text-7xl tracking-tighter">Sélection<br />de Projets.</h2>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-400 hidden md:block">
-                Archive 2023-2024
-              </p>
-            </div>
+          <section className="max-w-[1600px] mx-auto px-8 py-32 animate-fade-in-up">
+            <header className="mb-24 border-b border-neutral-100 pb-12 flex justify-between items-end">
+              <div>
+                <h2 className="font-serif text-8xl tracking-tighter mb-4">Projets.</h2>
+                <p className="text-neutral-400 text-sm tracking-widest uppercase font-bold">Sélection de travaux académiques & personnels</p>
+              </div>
+              <p className="text-xs font-serif italic text-neutral-300">Total: {projects.length}</p>
+            </header>
 
-            <div className="grid md:grid-cols-2 gap-x-12 gap-y-24">
-              {projects.map(project => (
-                <div key={project.id} className="group cursor-pointer">
-                  <div className="overflow-hidden bg-neutral-100 mb-8 aspect-[4/3]">
-                    <img
-                      src={project.image}
-                      alt={project.title}
-                      className="w-full h-full object-cover grayscale transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-105"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400 mb-4">
-                      {project.category}
-                    </span>
-                    <h3 className="font-serif text-3xl tracking-tight text-neutral-950 mb-4 group-hover:underline decoration-1 underline-offset-4">
-                      {project.title}
-                    </h3>
-                    <p className="text-neutral-600 font-light leading-relaxed">
-                      {project.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {activeTab === 'photography' && (
-          <section className="max-w-[1400px] mx-auto px-6 py-32 animate-fade-in-up">
-            <div className="flex justify-between items-end mb-20 border-b border-neutral-200 pb-12">
-              <h2 className="font-serif text-5xl lg:text-7xl tracking-tighter">Galerie<br />Photographique.</h2>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-400 hidden md:block">
-                Tirages 35mm & Numérique
-              </p>
-            </div>
-
-            <div className="columns-1 md:columns-2 gap-8 space-y-8">
-              {photos.map((photo, index) => (
-                <div key={index} className="break-inside-avoid relative group cursor-crosshair">
-                  <img
-                    src={photo}
-                    alt={`Photographie ${index + 1}`}
-                    className="w-full h-auto object-cover grayscale contrast-125 transition-all duration-700 group-hover:grayscale-0"
-                  />
-                  <div className="absolute inset-0 bg-neutral-950/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {activeTab === 'journal' && (
-          <section className="max-w-[800px] mx-auto px-6 py-32 animate-fade-in-up">
-            <div className="flex justify-between items-end mb-20 border-b border-neutral-200 pb-12">
-              <h2 className="font-serif text-5xl lg:text-7xl tracking-tighter">Journal.</h2>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-400 hidden md:block">
-                Notes & Réflexions
-              </p>
-            </div>
-
-            <div className="space-y-24">
-              {journalEntries.map(entry => (
-                <article key={entry.id} className="relative pl-8 md:pl-16 border-l border-neutral-200">
-                  <span className="absolute left-0 top-0 -translate-x-1/2 w-3 h-3 bg-neutral-950 rounded-full"></span>
-                  <time className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400 block mb-6">
-                    {entry.date}
-                  </time>
-                  <p className="text-xl text-neutral-800 leading-relaxed font-light mb-8 font-serif italic">
-                    "{entry.content}"
-                  </p>
-                  {entry.image && (
-                    <div className="overflow-hidden bg-neutral-100 aspect-video mt-8">
-                      <img
-                        src={entry.image}
-                        alt="Illustration du journal"
-                        className="w-full h-full object-cover grayscale contrast-125"
-                      />
+            {projects.length === 0 ? (
+              <div className="py-40 text-center border-2 border-dashed border-neutral-100 rounded-3xl">
+                <Briefcase size={48} className="mx-auto text-neutral-100 mb-6" />
+                <p className="text-neutral-400 font-serif text-2xl">La galerie est en cours d'actualisation.</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-x-20 gap-y-40">
+                {projects.map(p => (
+                  <div key={p.id} className="group">
+                    <div className="overflow-hidden bg-neutral-50 mb-10 aspect-[5/4] relative shadow-sm">
+                      <img src={p.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000" alt={p.title} />
+                      <div className="absolute top-6 left-6 bg-white/20 backdrop-blur-md px-4 py-2 text-[10px] font-bold text-white uppercase tracking-widest border border-white/30">{p.category}</div>
                     </div>
-                  )}
+                    <h3 className="font-serif text-5xl mb-6 group-hover:translate-x-4 transition-transform duration-500">{p.title}</h3>
+                    <p className="text-neutral-500 font-light leading-relaxed text-lg max-w-md">{p.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Journal Section */}
+        {activeTab === 'journal' && (
+          <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
+            <h2 className="font-serif text-7xl tracking-tighter mb-24 flex items-center gap-6">Journal.</h2>
+            <div className="space-y-40">
+              {journal.map(post => (
+                <article key={post.id} className="border-l-2 border-neutral-100 pl-16 hover:border-neutral-950 transition-colors duration-700 group">
+                  <time className="text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400 mb-8 block">{post.date}</time>
+                  <h3 className="font-serif text-6xl mb-10 tracking-tighter group-hover:text-neutral-700 transition-colors">{post.title}</h3>
+                  <div className="text-2xl text-neutral-500 font-light leading-relaxed whitespace-pre-wrap">{post.content}</div>
                 </article>
               ))}
+              {journal.length === 0 && (
+                <p className="text-center text-neutral-300 py-20 font-serif text-2xl italic font-light">Le journal est encore vierge.</p>
+              )}
             </div>
           </section>
         )}
 
-        {activeTab === 'admin' && isAdmin && (
-          <section className="max-w-[1000px] mx-auto px-6 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-5xl tracking-tighter mb-16 border-b border-neutral-200 pb-8">Tableau de Bord.</h2>
-
-            <div className="grid md:grid-cols-3 gap-8 mb-16">
-              <button className="flex flex-col items-center justify-center p-8 border border-neutral-200 hover:border-neutral-950 transition-colors group">
-                <Plus size={32} strokeWidth={1} className="mb-4 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-semibold uppercase tracking-[0.2em]">Nouveau Projet</span>
-              </button>
-              <button className="flex flex-col items-center justify-center p-8 border border-neutral-200 hover:border-neutral-950 transition-colors group">
-                <Plus size={32} strokeWidth={1} className="mb-4 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-semibold uppercase tracking-[0.2em]">Ajouter Photo</span>
-              </button>
-              <button className="flex flex-col items-center justify-center p-8 border border-neutral-200 hover:border-neutral-950 transition-colors group">
-                <Plus size={32} strokeWidth={1} className="mb-4 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-semibold uppercase tracking-[0.2em]">Note Journal</span>
-              </button>
+        {/* Experience & Education */}
+        {activeTab === 'experience' && (
+          <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up">
+            <h2 className="font-serif text-7xl tracking-tighter mb-24">Parcours Académique.</h2>
+            <div className="grid lg:grid-cols-2 gap-20">
+              <div className="space-y-16">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.4em] text-neutral-400 border-b border-neutral-100 pb-4 flex items-center gap-4">
+                  <GraduationCap size={16} /> Formation
+                </h3>
+                <div className="space-y-12">
+                  <div className="group">
+                    <p className="text-xs font-bold text-neutral-900 mb-2">2023 — Présent</p>
+                    <h4 className="font-serif text-3xl mb-4">EPITA</h4>
+                    <p className="text-neutral-500 font-light text-lg italic">Cycle Préparatoire Intégré</p>
+                    <p className="text-neutral-400 mt-4 leading-relaxed font-light">Apprentissage des fondamentaux de l'informatique, mathématiques appliquées et algorithmique rigoureuse.</p>
+                  </div>
+                  <div className="group opacity-60">
+                    <p className="text-xs font-bold text-neutral-900 mb-2">2023</p>
+                    <h4 className="font-serif text-3xl mb-4">Baccalauréat Général</h4>
+                    <p className="text-neutral-500 font-light text-lg italic">Spécialités Mathématiques & NSI</p>
+                    <p className="text-neutral-400 mt-4 leading-relaxed font-light">Mention Très Bien. Premier contact approfondi avec la programmation et la logique système.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-16">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.4em] text-neutral-400 border-b border-neutral-100 pb-4 flex items-center gap-4">
+                  <Briefcase size={16} /> Compétences
+                </h3>
+                <div className="grid grid-cols-2 gap-8 text-[11px] font-bold uppercase tracking-widest">
+                  <div className="p-6 border border-neutral-100 hover:border-neutral-950 transition-colors">C / C++</div>
+                  <div className="p-6 border border-neutral-100 hover:border-neutral-950 transition-colors">Python</div>
+                  <div className="p-6 border border-neutral-100 hover:border-neutral-950 transition-colors">Algorithms</div>
+                  <div className="p-6 border border-neutral-100 hover:border-neutral-950 transition-colors">Systems</div>
+                  <div className="p-6 border border-neutral-100 hover:border-neutral-950 transition-colors">React</div>
+                  <div className="p-6 border border-neutral-100 hover:border-neutral-950 transition-colors">Firebase</div>
+                </div>
+              </div>
             </div>
+          </section>
+        )}
 
-            <div className="space-y-16">
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400 mb-6 border-b border-neutral-200 pb-2">Projets Existants</h3>
-                <ul className="space-y-4">
+        {/* Bio Section */}
+        {activeTab === 'about' && (
+          <section className="max-w-[1400px] mx-auto px-8 py-32 animate-fade-in-up">
+            <div className="flex flex-col lg:flex-row gap-24 items-center">
+              <div className="w-full lg:w-2/5 aspect-[4/5] bg-neutral-100 overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover grayscale brightness-90" alt="Louis Portrait" />
+              </div>
+              <div className="w-full lg:w-3/5 space-y-12">
+                <h2 className="font-serif text-8xl tracking-tighter">Louis D.</h2>
+                <div className="space-y-8 text-2xl font-light leading-relaxed text-neutral-600">
+                  <p>Étudiant à l'EPITA, passionné par la résolution de problèmes complexes et l'esthétique du code. Mon approche de l'ingénierie est guidée par la recherche de la simplicité et de l'efficience.</p>
+                  <p>Au-delà du terminal, je m'intéresse à l'architecture et à la photographie de rue, des disciplines qui nourrissent ma vision de la composition et de la structure dans le logiciel.</p>
+                </div>
+                <button className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest border-b border-neutral-950 pb-2 hover:opacity-50 transition-opacity">Télécharger CV / Portfolio PDF</button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Admin Console */}
+        {activeTab === 'admin' && user && !user.isAnonymous && (
+          <section className="max-w-[1400px] mx-auto px-8 py-32 animate-fade-in-up bg-neutral-50/50 min-h-screen">
+            <header className="mb-20">
+              <h2 className="font-serif text-6xl tracking-tighter mb-4 flex items-center gap-6 text-rose-600"><Lock size={40} /> Console Admin</h2>
+              <p className="text-neutral-400 font-bold uppercase text-[11px] tracking-widest">Gestionnaire de contenu en temps réel</p>
+            </header>
+
+            <div className="grid lg:grid-cols-2 gap-20">
+              {/* Projects Form */}
+              <div className="space-y-10">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-200 pb-4">Nouveau Projet</h3>
+                <form onSubmit={addProject} className="space-y-6 bg-white p-10 border border-neutral-200 shadow-sm">
+                  <input type="text" placeholder="Titre" className="w-full border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 bg-transparent" value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} required />
+                  <input type="text" placeholder="Catégorie (ex: Python, Web)" className="w-full border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 bg-transparent" value={newProject.category} onChange={e => setNewProject({ ...newProject, category: e.target.value })} required />
+                  <textarea placeholder="Description détaillée" className="w-full border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 bg-transparent h-32" value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} required />
+                  <input type="text" placeholder="URL de l'image (Unsplash)" className="w-full border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 bg-transparent" value={newProject.image} onChange={e => setNewProject({ ...newProject, image: e.target.value })} required />
+                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 flex items-center justify-center gap-3">
+                    <Plus size={16} /> Publier le projet
+                  </button>
+                </form>
+                <div className="space-y-3">
                   {projects.map(p => (
-                    <li key={p.id} className="flex items-center justify-between p-4 border border-neutral-200 hover:bg-neutral-50 transition-colors">
-                      <span className="font-serif text-xl">{p.title}</span>
-                      <div className="flex gap-4">
-                        <button className="text-neutral-400 hover:text-neutral-950"><Edit2 size={18} /></button>
-                        <button className="text-neutral-400 hover:text-rose-600"><Trash2 size={18} /></button>
+                    <div key={p.id} className="flex items-center justify-between p-5 bg-white border border-neutral-100 hover:border-neutral-300 transition-colors group">
+                      <div>
+                        <p className="font-serif text-lg">{p.title}</p>
+                        <p className="text-[10px] text-neutral-400 uppercase font-bold tracking-widest">{p.category}</p>
                       </div>
-                    </li>
+                      <button onClick={() => deleteItem('projects', p.id)} className="text-neutral-200 hover:text-rose-600 p-2"><Trash2 size={20} /></button>
+                    </div>
                   ))}
-                </ul>
+                </div>
+              </div>
+
+              {/* Journal Form */}
+              <div className="space-y-10">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-200 pb-4">Note Journal</h3>
+                <form onSubmit={addJournalEntry} className="space-y-6 bg-white p-10 border border-neutral-200 shadow-sm">
+                  <input type="text" placeholder="Titre de la note" className="w-full border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 bg-transparent" value={newPost.title} onChange={e => setNewPost({ ...newPost, title: e.target.value })} required />
+                  <textarea placeholder="Exprimez une réflexion..." className="w-full border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 bg-transparent h-64" value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} required />
+                  <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 flex items-center justify-center gap-3">
+                    <Plus size={16} /> Enregistrer la note
+                  </button>
+                </form>
+                <div className="space-y-3">
+                  {journal.map(post => (
+                    <div key={post.id} className="flex items-center justify-between p-5 bg-white border border-neutral-100 hover:border-neutral-300 transition-colors">
+                      <div>
+                        <p className="font-serif text-lg">{post.title}</p>
+                        <p className="text-[10px] text-neutral-400 uppercase font-bold tracking-widest">{post.date}</p>
+                      </div>
+                      <button onClick={() => deleteItem('journal', post.id)} className="text-neutral-200 hover:text-rose-600 p-2"><Trash2 size={20} /></button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </section>
         )}
       </main>
 
-      <footer className="py-12 border-t border-neutral-200 mt-auto">
-        <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
-          <p>© {new Date().getFullYear()} — EPITA</p>
-          <p className="mt-4 md:mt-0">Design Éditorial</p>
+      {/* Footer */}
+      <footer className="py-24 border-t border-neutral-100 bg-neutral-50">
+        <div className="max-w-[1600px] mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-12">
+          <div className="text-center md:text-left">
+            <h4 className="font-serif text-4xl font-bold tracking-tighter mb-4">Louis.</h4>
+            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-neutral-400 max-w-[200px]">Conception logicielle & Design éditorial</p>
+          </div>
+          <div className="flex gap-12 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+            <button onClick={() => setActiveTab('home')} className="hover:text-neutral-950 transition-colors">Accueil</button>
+            <button onClick={() => setActiveTab('projects')} className="hover:text-neutral-950 transition-colors">Projets</button>
+            <button onClick={() => setActiveTab('journal')} className="hover:text-neutral-950 transition-colors">Journal</button>
+            <a href="#" className="hover:text-neutral-950 transition-colors">LinkedIn</a>
+          </div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-300">© {new Date().getFullYear()} — EPITA Paris</p>
         </div>
       </footer>
     </div>
