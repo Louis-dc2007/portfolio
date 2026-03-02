@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Github, Linkedin, ArrowRight, X,
   Lock, Plus, Trash2, LogOut, Newspaper, Briefcase,
-  GraduationCap, User, Camera, Menu, Send, Upload, Image as ImageIcon
+  GraduationCap, User, Camera, Menu, Send, Upload, Image as ImageIcon,
+  Moon, Sun
 } from 'lucide-react';
 import { initializeApp } from "firebase/app";
 import {
@@ -48,6 +49,7 @@ const App = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // États des données (synchronisés avec Firebase)
   const [projects, setProjects] = useState([]);
@@ -113,6 +115,14 @@ const App = () => {
       unsubPhotos();
     };
   }, [isLoading]);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -201,22 +211,22 @@ const App = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-neutral-950 font-sans selection:bg-neutral-900 selection:text-white">
+    <div className={`min-h-screen font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900 transition-colors duration-500 ${isDarkMode ? 'bg-neutral-950 text-white' : 'bg-white text-neutral-950'}`}>
 
       {/* Modal de connexion */}
       {showLogin && (
-        <div className="fixed inset-0 bg-white/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
-          <div className="bg-white p-10 border border-neutral-200 shadow-2xl max-w-md w-full relative">
-            <button onClick={() => setShowLogin(false)} className="absolute top-6 right-6 text-neutral-400 hover:text-neutral-950 transition-colors">
+        <div className="fixed inset-0 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
+          <div className="bg-white dark:bg-neutral-900 p-10 border border-neutral-200 dark:border-neutral-800 shadow-2xl max-w-md w-full relative">
+            <button onClick={() => setShowLogin(false)} className="absolute top-6 right-6 text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors">
               <X size={24} />
             </button>
-            <h2 className="font-serif text-4xl mb-8 flex items-center gap-4 tracking-tighter">
+            <h2 className="font-serif text-4xl mb-8 flex items-center gap-4 tracking-tighter text-neutral-950 dark:text-white">
               <Lock size={28} /> Admin
             </h2>
             <form onSubmit={handleLogin} className="space-y-6">
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 bg-transparent" placeholder="Email" required />
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950 bg-transparent" placeholder="Mot de passe" required />
-              <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors">Entrer</button>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border-b border-neutral-200 dark:border-white/20 py-3 focus:outline-none focus:border-neutral-950 dark:focus:border-white bg-transparent text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" placeholder="Email" required />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border-b border-neutral-200 dark:border-white/20 py-3 focus:outline-none focus:border-neutral-950 dark:focus:border-white bg-transparent text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" placeholder="Mot de passe" required />
+              <button type="submit" className="w-full bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors">Entrer</button>
             </form>
           </div>
         </div>
@@ -224,16 +234,16 @@ const App = () => {
 
       {/* Navigation (Masquée sur l'accueil) */}
       {activeTab !== 'home' && (
-        <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-xl z-50 border-b border-neutral-100">
+        <nav className="fixed top-0 w-full bg-white/80 dark:bg-neutral-950/80 backdrop-blur-xl z-50 border-b border-neutral-100 dark:border-white/5">
           <div className="max-w-[1600px] mx-auto px-8 h-24 flex items-center justify-between">
-            <button onClick={() => handleNav('home')} className="font-serif text-3xl font-bold tracking-tighter">Louis.</button>
+            <button onClick={() => handleNav('home')} className="font-serif text-3xl font-bold tracking-tighter text-neutral-950 dark:text-white">Louis.</button>
 
-            <div className="hidden lg:flex items-center space-x-8 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+            <div className="hidden lg:flex items-center space-x-8 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">
               {navItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => handleNav(item.id)}
-                  className={`hover:text-neutral-950 transition-colors ${activeTab === item.id ? 'text-neutral-950 border-b border-neutral-950' : ''}`}
+                  className={`hover:text-neutral-950 dark:hover:text-white transition-colors ${activeTab === item.id ? 'text-neutral-950 dark:text-white border-b border-neutral-950 dark:border-white' : ''}`}
                 >
                   {item.label}
                 </button>
@@ -249,7 +259,10 @@ const App = () => {
               ) : (
                 <button onClick={handleLogout} className="text-neutral-400 hover:text-rose-600"><LogOut size={20} /></button>
               )}
-              <button onClick={() => handleNav('contact')} className="bg-neutral-950 text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all">Me contacter</button>
+              <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors">
+                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+              <button onClick={() => handleNav('contact')} className="bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all">Me contacter</button>
             </div>
 
             <button className="lg:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -260,13 +273,13 @@ const App = () => {
       )}
 
       {/* Menu Mobile */}
-      <div className={`fixed inset-0 bg-white z-[60] transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'} lg:hidden pt-24`}>
+      <div className={`fixed inset-0 bg-white dark:bg-neutral-950 z-[60] transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'} lg:hidden pt-24`}>
         <div className="flex flex-col justify-center px-12 h-full space-y-8">
-          <button onClick={() => handleNav('home')} className="text-left font-serif text-5xl tracking-tighter">Accueil.</button>
+          <button onClick={() => handleNav('home')} className="text-left font-serif text-5xl tracking-tighter text-neutral-950 dark:text-white">Accueil.</button>
           {navItems.map(item => (
-            <button key={item.id} onClick={() => handleNav(item.id)} className="text-left font-serif text-5xl tracking-tighter text-neutral-400">{item.label}.</button>
+            <button key={item.id} onClick={() => handleNav(item.id)} className="text-left font-serif text-5xl tracking-tighter text-neutral-400 dark:text-neutral-600 dark:hover:text-white transition-colors">{item.label}.</button>
           ))}
-          <button onClick={() => handleNav('contact')} className="text-left font-serif text-5xl tracking-tighter text-neutral-400">Contact.</button>
+          <button onClick={() => handleNav('contact')} className="text-left font-serif text-5xl tracking-tighter text-neutral-400 dark:text-neutral-600 dark:hover:text-white transition-colors">Contact.</button>
           {user && !user.isAnonymous && <button onClick={() => handleNav('admin')} className="text-left font-serif text-5xl tracking-tighter text-rose-600">Admin.</button>}
         </div>
       </div>
@@ -276,13 +289,19 @@ const App = () => {
         {/* Hall du Musée (Home) */}
         {activeTab === 'home' && (
           <section className="animate-fade-in-up">
-            <div className="max-w-[1400px] mx-auto px-8 py-20">
+            <div className="max-w-[1400px] mx-auto px-8 py-8 md:py-20 relative">
+              <div className="flex justify-end mb-12">
+                <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors">
+                  {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
+                </button>
+              </div>
               <div className="mb-32">
                 <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-neutral-400 mb-8">EPITA — Cycle Préparatoire</p>
-                <h1 className="font-serif text-7xl md:text-9xl lg:text-[11rem] leading-[0.85] tracking-tighter mb-12 italic">Futur Ingénieur.</h1>
+                <h1 className="font-serif text-7xl md:text-9xl lg:text-[11rem] leading-[0.85] tracking-tighter mb-6 italic text-neutral-950 dark:text-white">Futur Ingénieur.</h1>
+                <p className="font-serif text-3xl md:text-4xl text-neutral-500 tracking-tight">Louis Da Costa</p>
               </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-neutral-100 border border-neutral-100">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-neutral-100 dark:bg-white/5 border border-neutral-100 dark:border-white/5">
                 {[
                   { id: 'experience', title: 'Expérience', desc: 'Mon parcours technique', icon: <Briefcase size={20} /> },
                   { id: 'projects', title: 'Projets', desc: 'Galerie de travaux', icon: <ArrowRight size={20} /> },
@@ -294,7 +313,7 @@ const App = () => {
                   <button
                     key={room.id}
                     onClick={() => handleNav(room.id)}
-                    className="group bg-white p-12 text-left hover:bg-neutral-950 hover:text-white transition-all duration-500"
+                    className="group bg-white dark:bg-neutral-950 p-12 text-left hover:bg-neutral-950 dark:hover:bg-white hover:text-white dark:hover:text-neutral-950 transition-all duration-500"
                   >
                     <div className="mb-12 opacity-40 group-hover:opacity-100 transition-opacity">{room.icon}</div>
                     <h3 className="font-serif text-4xl mb-4 tracking-tighter">{room.title}</h3>
@@ -309,19 +328,19 @@ const App = () => {
         {/* Expérience */}
         {activeTab === 'experience' && (
           <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 pb-12">Expérience.</h2>
+            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 dark:border-white/10 pb-12">Expérience.</h2>
             <div className="space-y-24">
               {experience.map(exp => (
                 <div key={exp.id} className="grid md:grid-cols-12 gap-8 items-start">
-                  <div className="md:col-span-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 pt-2">{exp.period}</div>
+                  <div className="md:col-span-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 pt-2">{exp.period}</div>
                   <div className="md:col-span-9">
-                    <h3 className="font-serif text-4xl mb-2">{exp.role}</h3>
-                    <p className="text-xs font-bold uppercase tracking-widest text-neutral-950 mb-4">{exp.company}</p>
-                    <p className="text-xl text-neutral-500 font-light leading-relaxed">{exp.description}</p>
+                    <h3 className="font-serif text-4xl mb-2 text-neutral-950 dark:text-white">{exp.role}</h3>
+                    <p className="text-xs font-bold uppercase tracking-widest text-neutral-950 dark:text-neutral-300 mb-4">{exp.company}</p>
+                    <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">{exp.description}</p>
                   </div>
                 </div>
               ))}
-              {experience.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 font-light">Aucune expérience répertoriée.</p>}
+              {experience.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucune expérience répertoriée.</p>}
             </div>
           </section>
         )}
@@ -329,19 +348,19 @@ const App = () => {
         {/* Projets */}
         {activeTab === 'projects' && (
           <section className="max-w-[1600px] mx-auto px-8 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-8xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Projets.</h2>
+            <h2 className="font-serif text-8xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Projets.</h2>
             <div className="grid md:grid-cols-2 gap-x-16 gap-y-32">
               {projects.map(p => (
                 <div key={p.id} className="group">
-                  <div className="aspect-[4/3] bg-neutral-50 overflow-hidden mb-8">
+                  <div className="aspect-[4/3] bg-neutral-50 dark:bg-white/5 overflow-hidden mb-8">
                     {p.image && <img src={p.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" alt={p.title} />}
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">{p.category}</span>
-                  <h3 className="font-serif text-4xl mt-4 mb-6">{p.title}</h3>
-                  <p className="text-neutral-500 font-light text-lg leading-relaxed">{p.description}</p>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{p.category}</span>
+                  <h3 className="font-serif text-4xl mt-4 mb-6 text-neutral-950 dark:text-white">{p.title}</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 font-light text-lg leading-relaxed">{p.description}</p>
                 </div>
               ))}
-              {projects.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 font-light">Aucun projet exposé pour le moment.</p>}
+              {projects.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucun projet exposé pour le moment.</p>}
             </div>
           </section>
         )}
@@ -349,16 +368,16 @@ const App = () => {
         {/* Formation */}
         {activeTab === 'education' && (
           <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 pb-12">Formation.</h2>
+            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Formation.</h2>
             <div className="space-y-20">
               {education.map(edu => (
-                <div key={edu.id} className="border-l-2 border-neutral-950 pl-12">
-                  <h3 className="font-serif text-5xl mb-2">{edu.school}</h3>
-                  <p className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-6">{edu.degree} · {edu.period}</p>
-                  <p className="text-xl text-neutral-500 font-light leading-relaxed">{edu.description}</p>
+                <div key={edu.id} className="border-l-2 border-neutral-950 dark:border-white pl-12">
+                  <h3 className="font-serif text-5xl mb-2 text-neutral-950 dark:text-white">{edu.school}</h3>
+                  <p className="text-xs font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-6">{edu.degree} · {edu.period}</p>
+                  <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">{edu.description}</p>
                 </div>
               ))}
-              {education.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 font-light">Aucune formation répertoriée.</p>}
+              {education.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucune formation répertoriée.</p>}
             </div>
           </section>
         )}
@@ -367,13 +386,13 @@ const App = () => {
         {activeTab === 'about' && (
           <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up">
             <div className="grid lg:grid-cols-2 gap-24 items-center">
-              <div className="aspect-[3/4] bg-neutral-100 overflow-hidden">
+              <div className="aspect-[3/4] bg-neutral-100 dark:bg-white/5 overflow-hidden">
                 <img src={profileImg} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" alt="Portrait" />
               </div>
               <div className="space-y-12">
-                <h2 className="font-serif text-8xl tracking-tighter italic">Bio.</h2>
-                <p className="text-3xl font-light leading-tight text-neutral-800">Passionné par l'informatique, je développe mes compétences via l'EPITA et des projets personnels.</p>
-                <p className="text-xl font-light text-neutral-500 leading-relaxed">Étudiant à l'EPITA Paris, je combine rigueur technique et curiosité créative.</p>
+                <h2 className="font-serif text-8xl tracking-tighter italic text-neutral-950 dark:text-white">Bio.</h2>
+                <p className="text-3xl font-light leading-tight text-neutral-800 dark:text-neutral-200">Passionné par l'informatique, je développe mes compétences via l'EPITA et des projets personnels.</p>
+                <p className="text-xl font-light text-neutral-500 dark:text-neutral-400 leading-relaxed">Étudiant à l'EPITA Paris, je combine rigueur technique et curiosité créative.</p>
               </div>
             </div>
           </section>
@@ -382,19 +401,19 @@ const App = () => {
         {/* Photographie */}
         {activeTab === 'photography' && (
           <section className="max-w-[1400px] mx-auto px-8 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Photographie.</h2>
+            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Photographie.</h2>
             <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
               {photos.map((photo) => (
-                <div key={photo.id} className="group relative overflow-hidden bg-neutral-100 border border-neutral-100">
+                <div key={photo.id} className="group relative overflow-hidden bg-neutral-100 dark:bg-white/5 border border-neutral-100 dark:border-white/5">
                   <img src={photo.image} className="w-full grayscale hover:grayscale-0 transition-all duration-1000" alt={photo.caption} />
                   {photo.caption && (
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-[10px] font-bold uppercase tracking-widest">{photo.caption}</p>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-950 dark:text-white">{photo.caption}</p>
                     </div>
                   )}
                 </div>
               ))}
-              {photos.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 font-light">Galerie vide.</p>}
+              {photos.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Galerie vide.</p>}
             </div>
           </section>
         )}
@@ -425,23 +444,23 @@ const App = () => {
         {/* Contact */}
         {activeTab === 'contact' && (
           <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Contact.</h2>
+            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Contact.</h2>
             <div className="grid md:grid-cols-12 gap-16">
               <div className="md:col-span-5 space-y-8">
-                <p className="text-xl font-light text-neutral-500 leading-relaxed italic">
+                <p className="text-xl font-light text-neutral-500 dark:text-neutral-400 leading-relaxed italic">
                   Une question sur un projet ? N'hésitez pas à me contacter via ce formulaire.
                 </p>
-                <p className="font-serif text-lg">louisdacosta@etik.com</p>
+                <p className="font-serif text-lg text-neutral-950 dark:text-white">louisdacosta@etik.com</p>
               </div>
               <div className="md:col-span-7">
                 <form onSubmit={handleSubmitContact} className="space-y-8">
                   <div className="grid grid-cols-2 gap-8">
-                    <input type="text" placeholder="Nom" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950" value={contactData.name} onChange={(e) => setContactData({ ...contactData, name: e.target.value })} required />
-                    <input type="email" placeholder="Email" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950" value={contactData.email} onChange={(e) => setContactData({ ...contactData, email: e.target.value })} required />
+                    <input type="text" placeholder="Nom" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-3 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={contactData.name} onChange={(e) => setContactData({ ...contactData, name: e.target.value })} required />
+                    <input type="email" placeholder="Email" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-3 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={contactData.email} onChange={(e) => setContactData({ ...contactData, email: e.target.value })} required />
                   </div>
-                  <input type="text" placeholder="Objet" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none focus:border-neutral-950" value={contactData.subject} onChange={(e) => setContactData({ ...contactData, subject: e.target.value })} required />
-                  <textarea placeholder="Message" className="w-full bg-transparent border-b border-neutral-200 py-3 focus:outline-none h-32" value={contactData.message} onChange={(e) => setContactData({ ...contactData, message: e.target.value })} required />
-                  <button type="submit" className="flex items-center gap-4 bg-neutral-950 text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-all">
+                  <input type="text" placeholder="Objet" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-3 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={contactData.subject} onChange={(e) => setContactData({ ...contactData, subject: e.target.value })} required />
+                  <textarea placeholder="Message" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-3 focus:outline-none h-32 text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={contactData.message} onChange={(e) => setContactData({ ...contactData, message: e.target.value })} required />
+                  <button type="submit" className="flex items-center gap-4 bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all">
                     Envoyer le message <Send size={16} />
                   </button>
                 </form>
@@ -453,9 +472,9 @@ const App = () => {
         {/* Console Admin */}
         {activeTab === 'admin' && user && !user.isAnonymous && (
           <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up pb-60">
-            <header className="mb-20 border-b border-rose-100 pb-8 flex justify-between items-center">
-              <h2 className="font-serif text-6xl tracking-tighter text-rose-600 flex items-center gap-4"><Lock size={40} /> Console Admin</h2>
-              <button onClick={handleLogout} className="text-neutral-400 hover:text-rose-600 font-bold text-[10px] uppercase tracking-widest border border-neutral-100 px-4 py-2 transition-colors">Déconnexion</button>
+            <header className="mb-20 border-b border-rose-100 dark:border-rose-900/50 pb-8 flex justify-between items-center">
+              <h2 className="font-serif text-6xl tracking-tighter text-rose-600 dark:text-rose-500 flex items-center gap-4"><Lock size={40} /> Console Admin</h2>
+              <button onClick={handleLogout} className="text-neutral-400 hover:text-rose-600 dark:hover:text-rose-500 font-bold text-[10px] uppercase tracking-widest border border-neutral-100 dark:border-white/10 px-4 py-2 transition-colors">Déconnexion</button>
             </header>
 
             <div className="grid lg:grid-cols-2 gap-x-20 gap-y-32">
@@ -468,12 +487,12 @@ const App = () => {
                     e.preventDefault();
                     addDocToFirestore('projects', newProject, setNewProject, { title: '', category: '', description: '', image: '' });
                   }}
-                  className="space-y-6 bg-neutral-50 p-10 shadow-sm"
+                  className="space-y-6 bg-neutral-50 dark:bg-white/5 p-10 shadow-sm"
                 >
-                  <input type="text" placeholder="Titre" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} required />
-                  <input type="text" placeholder="Catégorie" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newProject.category} onChange={e => setNewProject({ ...newProject, category: e.target.value })} required />
-                  <textarea placeholder="Description" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-24" value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} required />
-                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 p-8 hover:border-neutral-950 transition-colors cursor-pointer bg-white">
+                  <input type="text" placeholder="Titre" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} required />
+                  <input type="text" placeholder="Catégorie" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newProject.category} onChange={e => setNewProject({ ...newProject, category: e.target.value })} required />
+                  <textarea placeholder="Description" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none h-24 focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} required />
+                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-8 hover:border-neutral-950 dark:hover:border-white transition-colors cursor-pointer bg-white dark:bg-neutral-900">
                     {newProject.image ? (
                       <img src={newProject.image} className="max-h-32 mb-2" alt="Aperçu" />
                     ) : (
@@ -486,7 +505,7 @@ const App = () => {
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                   {projects.map(p => (
-                    <div key={p.id} className="flex items-center justify-between p-4 bg-white border border-neutral-100 group">
+                    <div key={p.id} className="flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-white/5 group">
                       <span className="font-serif truncate mr-4">{p.title}</span>
                       <button onClick={() => deleteItem('projects', p.id)} className="text-neutral-200 group-hover:text-rose-600 transition-colors flex-shrink-0"><Trash2 size={18} /></button>
                     </div>
@@ -502,11 +521,11 @@ const App = () => {
                     e.preventDefault();
                     addDocToFirestore('journal', newPost, setNewPost, { title: '', content: '', image: '' });
                   }}
-                  className="space-y-6 bg-neutral-50 p-10 shadow-sm"
+                  className="space-y-6 bg-neutral-50 dark:bg-white/5 p-10 shadow-sm"
                 >
-                  <input type="text" placeholder="Titre de la note" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newPost.title} onChange={e => setNewPost({ ...newPost, title: e.target.value })} required />
-                  <textarea placeholder="Réflexion..." className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-44" value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} required />
-                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 p-8 hover:border-neutral-950 transition-colors cursor-pointer bg-white">
+                  <input type="text" placeholder="Titre de la note" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newPost.title} onChange={e => setNewPost({ ...newPost, title: e.target.value })} required />
+                  <textarea placeholder="Réflexion..." className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none h-44 focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} required />
+                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-8 hover:border-neutral-950 dark:hover:border-white transition-colors cursor-pointer bg-white dark:bg-neutral-900">
                     {newPost.image ? (
                       <img src={newPost.image} className="max-h-32 mb-2" alt="Aperçu" />
                     ) : (
@@ -519,7 +538,7 @@ const App = () => {
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                   {journal.map(post => (
-                    <div key={post.id} className="flex items-center justify-between p-4 bg-white border border-neutral-100 group">
+                    <div key={post.id} className="flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-white/5 group">
                       <span className="font-serif truncate mr-4">{post.title}</span>
                       <button onClick={() => deleteItem('journal', post.id)} className="text-neutral-200 group-hover:text-rose-600 transition-colors flex-shrink-0"><Trash2 size={18} /></button>
                     </div>
@@ -535,17 +554,17 @@ const App = () => {
                     e.preventDefault();
                     addDocToFirestore('experience', newExp, setNewExp, { company: '', role: '', period: '', description: '' });
                   }}
-                  className="space-y-6 bg-neutral-50 p-10 shadow-sm"
+                  className="space-y-6 bg-neutral-50 dark:bg-white/5 p-10 shadow-sm"
                 >
-                  <input type="text" placeholder="Entreprise" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.company} onChange={e => setNewExp({ ...newExp, company: e.target.value })} required />
-                  <input type="text" placeholder="Rôle" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.role} onChange={e => setNewExp({ ...newExp, role: e.target.value })} required />
-                  <input type="text" placeholder="Période" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newExp.period} onChange={e => setNewExp({ ...newExp, period: e.target.value })} required />
-                  <textarea placeholder="Détails..." className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-24" value={newExp.description} onChange={e => setNewExp({ ...newExp, description: e.target.value })} required />
+                  <input type="text" placeholder="Entreprise" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newExp.company} onChange={e => setNewExp({ ...newExp, company: e.target.value })} required />
+                  <input type="text" placeholder="Rôle" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newExp.role} onChange={e => setNewExp({ ...newExp, role: e.target.value })} required />
+                  <input type="text" placeholder="Période" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newExp.period} onChange={e => setNewExp({ ...newExp, period: e.target.value })} required />
+                  <textarea placeholder="Détails..." className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none h-24 focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newExp.description} onChange={e => setNewExp({ ...newExp, description: e.target.value })} required />
                   <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors">Ajouter</button>
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                   {experience.map(exp => (
-                    <div key={exp.id} className="flex items-center justify-between p-4 bg-white border border-neutral-100 group">
+                    <div key={exp.id} className="flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-white/5 group">
                       <span className="font-serif truncate mr-4">{exp.role} @ {exp.company}</span>
                       <button onClick={() => deleteItem('experience', exp.id)} className="text-neutral-200 group-hover:text-rose-600 transition-colors flex-shrink-0"><Trash2 size={18} /></button>
                     </div>
@@ -561,17 +580,17 @@ const App = () => {
                     e.preventDefault();
                     addDocToFirestore('education', newEdu, setNewEdu, { school: '', degree: '', period: '', description: '' });
                   }}
-                  className="space-y-6 bg-neutral-50 p-10 shadow-sm"
+                  className="space-y-6 bg-neutral-50 dark:bg-white/5 p-10 shadow-sm"
                 >
-                  <input type="text" placeholder="École" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newEdu.school} onChange={e => setNewEdu({ ...newEdu, school: e.target.value })} required />
-                  <input type="text" placeholder="Diplôme" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newEdu.degree} onChange={e => setNewEdu({ ...newEdu, degree: e.target.value })} required />
-                  <input type="text" placeholder="Période" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newEdu.period} onChange={e => setNewEdu({ ...newEdu, period: e.target.value })} required />
-                  <textarea placeholder="Détails..." className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none h-24" value={newEdu.description} onChange={e => setNewEdu({ ...newEdu, description: e.target.value })} required />
+                  <input type="text" placeholder="École" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newEdu.school} onChange={e => setNewEdu({ ...newEdu, school: e.target.value })} required />
+                  <input type="text" placeholder="Diplôme" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newEdu.degree} onChange={e => setNewEdu({ ...newEdu, degree: e.target.value })} required />
+                  <input type="text" placeholder="Période" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newEdu.period} onChange={e => setNewEdu({ ...newEdu, period: e.target.value })} required />
+                  <textarea placeholder="Détails..." className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none h-24 focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newEdu.description} onChange={e => setNewEdu({ ...newEdu, description: e.target.value })} required />
                   <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors">Ajouter</button>
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                   {education.map(edu => (
-                    <div key={edu.id} className="flex items-center justify-between p-4 bg-white border border-neutral-100 group">
+                    <div key={edu.id} className="flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-white/5 group">
                       <span className="font-serif truncate mr-4">{edu.degree} @ {edu.school}</span>
                       <button onClick={() => deleteItem('education', edu.id)} className="text-neutral-200 group-hover:text-rose-600 transition-colors flex-shrink-0"><Trash2 size={18} /></button>
                     </div>
@@ -587,10 +606,10 @@ const App = () => {
                     e.preventDefault();
                     addDocToFirestore('photos', newPhoto, setNewPhoto, { image: '', caption: '' });
                   }}
-                  className="bg-neutral-50 p-10 grid md:grid-cols-2 gap-10 shadow-sm"
+                  className="bg-neutral-50 dark:bg-white/5 p-10 grid md:grid-cols-2 gap-10 shadow-sm"
                 >
                   <div className="space-y-6">
-                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 p-12 hover:border-neutral-950 transition-colors cursor-pointer bg-white">
+                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-12 hover:border-neutral-950 dark:hover:border-white transition-colors cursor-pointer bg-white dark:bg-neutral-900">
                       {newPhoto.image ? (
                         <img src={newPhoto.image} className="w-full max-h-40 object-contain mb-4" alt="Aperçu" />
                       ) : (
@@ -599,12 +618,12 @@ const App = () => {
                       <span className="text-[10px] font-bold uppercase">Sélectionner un fichier</span>
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, setNewPhoto, 'image')} />
                     </label>
-                    <input type="text" placeholder="Légende" className="w-full bg-transparent border-b border-neutral-200 py-2 focus:outline-none" value={newPhoto.caption} onChange={e => setNewPhoto({ ...newPhoto, caption: e.target.value })} />
+                    <input type="text" placeholder="Légende" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newPhoto.caption} onChange={e => setNewPhoto({ ...newPhoto, caption: e.target.value })} />
                     <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors">Ajouter à la galerie</button>
                   </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 overflow-y-auto max-h-[400px] p-2 bg-white">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 overflow-y-auto max-h-[400px] p-2 bg-white dark:bg-neutral-900">
                     {photos.map(photo => (
-                      <div key={photo.id} className="relative aspect-square border border-neutral-100 group bg-neutral-50">
+                      <div key={photo.id} className="relative aspect-square border border-neutral-100 dark:border-white/5 group bg-neutral-50 dark:bg-white/5">
                         <img src={photo.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="Galerie" />
                         <button onClick={() => deleteItem('photos', photo.id)} className="absolute top-1 right-1 bg-white/90 p-1 text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"><Trash2 size={14} /></button>
                       </div>
@@ -618,28 +637,28 @@ const App = () => {
         )}
       </main>
 
-      <footer className="py-24 border-t border-neutral-100 mt-20 bg-neutral-50/50">
+      <footer className="py-24 border-t border-neutral-100 dark:border-white/5 mt-20 bg-neutral-50/50 dark:bg-white/5">
         <div className="max-w-[1600px] mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="text-center md:text-left">
-            <h4 className="font-serif text-3xl font-bold tracking-tighter mb-4">Louis.</h4>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">LDC — Portfolio</p>
+            <h4 className="font-serif text-3xl font-bold tracking-tighter mb-4 text-neutral-950 dark:text-white">Louis.</h4>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">LDC — Portfolio</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
-            <button onClick={() => handleNav('home')} className="hover:text-neutral-950 transition-colors">Accueil</button>
-            <button onClick={() => handleNav('contact')} className="hover:text-neutral-950 transition-colors text-neutral-950 underline underline-offset-4 decoration-neutral-200">Me contacter</button>
+          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+            <button onClick={() => handleNav('home')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">Accueil</button>
+            <button onClick={() => handleNav('contact')} className="hover:text-neutral-950 dark:hover:text-white transition-colors text-neutral-950 dark:text-white underline underline-offset-4 decoration-neutral-200 dark:decoration-neutral-700">Me contacter</button>
             {user && !user.isAnonymous ? (
               <button onClick={() => handleNav('admin')} className="hover:text-rose-600 transition-colors flex items-center gap-2">
                 <Lock size={10} /> Console Admin
               </button>
             ) : (
-              <button onClick={() => setShowLogin(true)} className="hover:text-neutral-950 transition-colors flex items-center gap-2">
+              <button onClick={() => setShowLogin(true)} className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-2">
                 <Lock size={10} /> Accès Admin
               </button>
             )}
-            <a href="https://www.instagram.com/louis_dc07/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-950 transition-colors">Instagram</a>
-            <a href="https://www.linkedin.com/in/louis-da-costa2007/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-950 transition-colors">LinkedIn</a>
+            <a href="https://www.instagram.com/louis_dc07/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-950 dark:hover:text-white transition-colors">Instagram</a>
+            <a href="https://www.linkedin.com/in/louis-da-costa2007/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-950 dark:hover:text-white transition-colors">LinkedIn</a>
           </div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-300">© {new Date().getFullYear()} — Propriété de Louis D.</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-300 dark:text-neutral-600">© {new Date().getFullYear()} — Propriété de Louis D.</p>
         </div>
       </footer>
     </div>
