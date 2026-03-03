@@ -383,9 +383,9 @@ const App = () => {
             <h2 className="font-serif text-5xl md:text-8xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Projets.</h2>
             <div className="grid md:grid-cols-2 gap-x-16 gap-y-32">
               {projects.map(p => (
-                <div key={p.id} className="group">
+                <div key={p.id} className="group focus:outline-none" tabIndex="0">
                   <div className="aspect-[4/3] bg-neutral-50 dark:bg-white/5 overflow-hidden mb-8">
-                    {p.image && <img src={p.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" alt={p.title} />}
+                    {p.image && <img src={p.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000" alt={p.title} />}
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{p.category}</span>
                   <h3 className="font-serif text-4xl mt-4 mb-6 text-neutral-950 dark:text-white">{p.title}</h3>
@@ -419,7 +419,7 @@ const App = () => {
           <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up">
             <div className="grid lg:grid-cols-2 gap-24 items-center">
               <div className="aspect-[3/4] bg-neutral-100 dark:bg-white/5 overflow-hidden">
-                <img src={profileImg} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" alt="Portrait" />
+                <img src={profileImg} className="w-full h-full object-cover grayscale hover:grayscale-0 focus:grayscale-0 outline-none transition-all duration-1000" alt="Portrait" tabIndex="0" />
               </div>
               <div className="space-y-12">
                 <h2 className="font-serif text-5xl md:text-8xl tracking-tighter italic text-neutral-950 dark:text-white">Bio.</h2>
@@ -436,10 +436,10 @@ const App = () => {
             <h2 className="font-serif break-words text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Photographie.</h2>
             <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
               {photos.map((photo) => (
-                <div key={photo.id} className="group relative overflow-hidden bg-neutral-100 dark:bg-white/5 border border-neutral-100 dark:border-white/5">
-                  <img src={photo.image} className="w-full grayscale hover:grayscale-0 transition-all duration-1000" alt={photo.caption} />
+                <div key={photo.id} className="group relative overflow-hidden bg-neutral-100 dark:bg-white/5 border border-neutral-100 dark:border-white/5 focus:outline-none" tabIndex="0">
+                  <img src={photo.image} className="w-full grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000" alt={photo.caption} />
                   {photo.caption && (
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-950 dark:text-white">{photo.caption}</p>
                     </div>
                   )}
@@ -462,7 +462,7 @@ const App = () => {
                   <h3 className="font-serif text-5xl mb-8 tracking-tighter">{post.title}</h3>
                   {post.image && (
                     <div className="mb-10 aspect-video bg-neutral-50 overflow-hidden">
-                      <img src={post.image} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" alt={post.title} />
+                      <img src={post.image} className="w-full h-full object-cover grayscale hover:grayscale-0 focus:grayscale-0 outline-none transition-all duration-1000" alt={post.title} tabIndex="0" />
                     </div>
                   )}
                   <div className="text-2xl text-neutral-500 font-light leading-relaxed whitespace-pre-wrap italic">"{post.content}"</div>
@@ -707,8 +707,8 @@ const App = () => {
                   </div>
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 overflow-y-auto max-h-[400px] p-2 bg-white dark:bg-neutral-900">
                     {photos.map(photo => (
-                      <div key={photo.id} className="relative aspect-square border border-neutral-100 dark:border-white/5 group bg-neutral-50 dark:bg-white/5">
-                        <img src={photo.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="Galerie" />
+                      <div key={photo.id} className="relative aspect-square border border-neutral-100 dark:border-white/5 group bg-neutral-50 dark:bg-white/5 focus:outline-none" tabIndex="0">
+                        <img src={photo.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-700" alt="Galerie" />
                         <button type="button" onClick={() => deleteItem('photos', photo.id)} className="absolute top-1 right-1 bg-white/90 p-1 text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"><Trash2 size={14} /></button>
                       </div>
                     ))}
