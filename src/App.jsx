@@ -179,10 +179,22 @@ const App = () => {
 
   const deleteItem = async (col, id) => {
     if (!user || user.isAnonymous) return;
+    if (!window.confirm('Supprimer cet élément ?')) return;
     try {
-      await deleteDoc(doc(db, 'artifacts', portfolioId, 'public', 'data', col, id));
+      if (col === 'photos') {
+        const photoRef = doc(db, 'artifacts', portfolioId, 'public', 'data', col, id);
+        await deleteDoc(photoRef);
+        setPhotos(prev => prev.filter(p => p.id !== id));
+      } else {
+        await deleteDoc(doc(db, 'artifacts', portfolioId, 'public', 'data', col, id));
+        if (col === 'projects') setProjects(prev => prev.filter(item => item.id !== id));
+        if (col === 'journal') setJournal(prev => prev.filter(item => item.id !== id));
+        if (col === 'experience') setExperience(prev => prev.filter(item => item.id !== id));
+        if (col === 'education') setEducation(prev => prev.filter(item => item.id !== id));
+      }
     } catch (err) {
       console.error("Erreur de suppression:", err);
+      alert("Erreur lors de la suppression.");
     }
   };
 
@@ -328,7 +340,7 @@ const App = () => {
         {/* Expérience */}
         {activeTab === 'experience' && (
           <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 dark:border-white/10 pb-12">Expérience.</h2>
+            <h2 className="font-serif text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-200 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Expérience.</h2>
             <div className="space-y-24">
               {experience.map(exp => (
                 <div key={exp.id} className="grid md:grid-cols-12 gap-8 items-start">
@@ -348,7 +360,7 @@ const App = () => {
         {/* Projets */}
         {activeTab === 'projects' && (
           <section className="max-w-[1600px] mx-auto px-8 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-8xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Projets.</h2>
+            <h2 className="font-serif text-5xl md:text-8xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Projets.</h2>
             <div className="grid md:grid-cols-2 gap-x-16 gap-y-32">
               {projects.map(p => (
                 <div key={p.id} className="group">
@@ -368,7 +380,7 @@ const App = () => {
         {/* Formation */}
         {activeTab === 'education' && (
           <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-200 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Formation.</h2>
+            <h2 className="font-serif text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-200 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Formation.</h2>
             <div className="space-y-20">
               {education.map(edu => (
                 <div key={edu.id} className="border-l-2 border-neutral-950 dark:border-white pl-12">
@@ -390,7 +402,7 @@ const App = () => {
                 <img src={profileImg} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" alt="Portrait" />
               </div>
               <div className="space-y-12">
-                <h2 className="font-serif text-8xl tracking-tighter italic text-neutral-950 dark:text-white">Bio.</h2>
+                <h2 className="font-serif text-5xl md:text-8xl tracking-tighter italic text-neutral-950 dark:text-white">Bio.</h2>
                 <p className="text-3xl font-light leading-tight text-neutral-800 dark:text-neutral-200">Passionné par l'informatique, je développe mes compétences via l'EPITA et des projets personnels.</p>
                 <p className="text-xl font-light text-neutral-500 dark:text-neutral-400 leading-relaxed">Étudiant à l'EPITA Paris, je combine rigueur technique et curiosité créative.</p>
               </div>
@@ -401,7 +413,7 @@ const App = () => {
         {/* Photographie */}
         {activeTab === 'photography' && (
           <section className="max-w-[1400px] mx-auto px-8 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Photographie.</h2>
+            <h2 className="font-serif break-words text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Photographie.</h2>
             <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
               {photos.map((photo) => (
                 <div key={photo.id} className="group relative overflow-hidden bg-neutral-100 dark:bg-white/5 border border-neutral-100 dark:border-white/5">
@@ -421,7 +433,7 @@ const App = () => {
         {/* Journal */}
         {activeTab === 'journal' && (
           <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 pb-12">Journal.</h2>
+            <h2 className="font-serif text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Journal.</h2>
             <div className="space-y-40">
               {journal.map(post => (
                 <article key={post.id} className="relative pl-16 border-l border-neutral-100 hover:border-neutral-950 transition-colors duration-500">
@@ -444,7 +456,7 @@ const App = () => {
         {/* Contact */}
         {activeTab === 'contact' && (
           <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in-up">
-            <h2 className="font-serif text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Contact.</h2>
+            <h2 className="font-serif text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Écrivez-moi.</h2>
             <div className="grid md:grid-cols-12 gap-16">
               <div className="md:col-span-5 space-y-8">
                 <p className="text-xl font-light text-neutral-500 dark:text-neutral-400 leading-relaxed italic">
@@ -473,7 +485,7 @@ const App = () => {
         {activeTab === 'admin' && user && !user.isAnonymous && (
           <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up pb-60">
             <header className="mb-20 border-b border-rose-100 dark:border-rose-900/50 pb-8 flex justify-between items-center">
-              <h2 className="font-serif text-6xl tracking-tighter text-rose-600 dark:text-rose-500 flex items-center gap-4"><Lock size={40} /> Console Admin</h2>
+              <h2 className="font-serif text-4xl md:text-6xl tracking-tighter text-rose-600 dark:text-rose-500 flex items-center gap-4"><Lock size={40} className="hidden md:block" /> Console Admin</h2>
               <button onClick={handleLogout} className="text-neutral-400 hover:text-rose-600 dark:hover:text-rose-500 font-bold text-[10px] uppercase tracking-widest border border-neutral-100 dark:border-white/10 px-4 py-2 transition-colors">Déconnexion</button>
             </header>
 
