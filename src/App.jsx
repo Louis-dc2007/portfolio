@@ -63,7 +63,7 @@ const App = () => {
   const [newPost, setNewPost] = useState({ title: '', content: '', image: '' });
   const [newExp, setNewExp] = useState({ company: '', role: '', period: '', description: '' });
   const [newEdu, setNewEdu] = useState({ school: '', degree: '', period: '', description: '' });
-  const [newPhoto, setNewPhoto] = useState({ image: '', caption: '' });
+  const [newPhotos, setNewPhotos] = useState([]);
 
   const [contactData, setContactData] = useState({ name: '', email: '', subject: '', message: '' });
 
@@ -614,30 +614,82 @@ const App = () => {
               <div className="space-y-10 lg:col-span-2">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Gérer la Galerie Photo</h3>
                 <form
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
-                    addDocToFirestore('photos', newPhoto, setNewPhoto, { image: '', caption: '' });
+                    if (!user || user.isAnonymous || newPhotos.length === 0) return;
+                    try {
+                      for (const photo of newPhotos) {
+                        const payload = {
+                          image: photo.image,
+                          caption: photo.caption || '',
+                          createdAt: serverTimestamp()
+                        };
+                        await addDoc(collection(db, 'artifacts', portfolioId, 'public', 'data', 'photos'), payload);
+                      }
+                      setNewPhotos([]);
+                    } catch (err) {
+                      console.error("Erreur d'envoi Firestore:", err);
+                      alert("Erreur lors de l'enregistrement des photos.");
+                    }
                   }}
                   className="bg-neutral-50 dark:bg-white/5 p-10 grid md:grid-cols-2 gap-10 shadow-sm"
                 >
                   <div className="space-y-6">
                     <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-12 hover:border-neutral-950 dark:hover:border-white transition-colors cursor-pointer bg-white dark:bg-neutral-900">
-                      {newPhoto.image ? (
-                        <img src={newPhoto.image} className="w-full max-h-40 object-contain mb-4" alt="Aperçu" />
+                      {newPhotos.length > 0 ? (
+                        <div className="text-center">
+                          <p className="text-3xl font-serif mb-2 text-neutral-950 dark:text-white">{newPhotos.length}</p>
+                          <p className="text-[10px] font-bold uppercase text-neutral-500">Photos sélectionnées</p>
+                        </div>
                       ) : (
                         <Upload size={32} className="text-neutral-300 mb-2" />
                       )}
-                      <span className="text-[10px] font-bold uppercase">Sélectionner un fichier</span>
-                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, setNewPhoto, 'image')} />
+                      <span className="text-[10px] font-bold uppercase mt-4">Sélectionner des fichiers</span>
+                      <input type="file" className="hidden" accept="image/*" multiple onChange={(e) => {
+                        const files = Array.from(e.target.files);
+                        files.forEach(file => {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            const img = new Image();
+                            img.onload = () => {
+                              const maxDimension = 1200;
+                              let width = img.width;
+                              let height = img.height;
+                              if (width > height && width > maxDimension) {
+                                height = Math.round((height * maxDimension) / width);
+                                width = maxDimension;
+                              } else if (height > maxDimension) {
+                                width = Math.round((width * maxDimension) / height);
+                                height = maxDimension;
+                              }
+                              const canvas = document.createElement('canvas');
+                              canvas.width = width;
+                              canvas.height = height;
+                              const ctx = canvas.getContext('2d');
+                              ctx.drawImage(img, 0, 0, width, height);
+                              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                              setNewPhotos(prev => [...prev, { image: compressedBase64 }]);
+                            };
+                            img.src = reader.result;
+                          };
+                          reader.readAsDataURL(file);
+                        });
+                      }} />
                     </label>
-                    <input type="text" placeholder="Légende" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newPhoto.caption} onChange={e => setNewPhoto({ ...newPhoto, caption: e.target.value })} />
-                    <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors">Ajouter à la galerie</button>
+                    <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors" disabled={newPhotos.length === 0}>
+                      Ajouter {newPhotos.length > 0 ? newPhotos.length : ''} photo{newPhotos.length > 1 ? 's' : ''} à la galerie
+                    </button>
+                    {newPhotos.length > 0 && (
+                      <button type="button" onClick={() => setNewPhotos([])} className="w-full bg-rose-600 text-white py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-rose-700 transition-colors">
+                        Vider la sélection
+                      </button>
+                    )}
                   </div>
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 overflow-y-auto max-h-[400px] p-2 bg-white dark:bg-neutral-900">
                     {photos.map(photo => (
                       <div key={photo.id} className="relative aspect-square border border-neutral-100 dark:border-white/5 group bg-neutral-50 dark:bg-white/5">
                         <img src={photo.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="Galerie" />
-                        <button onClick={() => deleteItem('photos', photo.id)} className="absolute top-1 right-1 bg-white/90 p-1 text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"><Trash2 size={14} /></button>
+                        <button type="button" onClick={() => deleteItem('photos', photo.id)} className="absolute top-1 right-1 bg-white/90 p-1 text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"><Trash2 size={14} /></button>
                       </div>
                     ))}
                   </div>
