@@ -268,7 +268,7 @@ const App = () => {
       {activeTab !== 'home' && (
         <nav className="fixed top-0 w-full bg-white/80 dark:bg-neutral-950/80 backdrop-blur-xl z-50 border-b border-neutral-100 dark:border-white/5">
           <div className="max-w-[1600px] mx-auto px-8 h-24 flex items-center justify-between">
-            <button onClick={() => handleNav('home')} className="font-serif text-3xl font-bold tracking-tighter text-neutral-950 dark:text-white">Louis.</button>
+            <button onClick={() => handleNav('home')} className="font-serif text-3xl font-bold tracking-tighter text-neutral-950 dark:text-white">LouisDC.</button>
 
             <div className="hidden lg:flex items-center space-x-8 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">
               {navItems.map(item => (
@@ -724,7 +724,7 @@ const App = () => {
       <footer className="py-24 border-t border-neutral-100 dark:border-white/5 mt-20 bg-neutral-50/50 dark:bg-white/5">
         <div className="max-w-[1600px] mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="text-center md:text-left">
-            <h4 className="font-serif text-3xl font-bold tracking-tighter mb-4 text-neutral-950 dark:text-white">Louis.</h4>
+            <h4 className="font-serif text-3xl font-bold tracking-tighter mb-4 text-neutral-950 dark:text-white">LouisDC.</h4>
             <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">LDC — Portfolio</p>
           </div>
           <div className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
