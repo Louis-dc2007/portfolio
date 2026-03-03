@@ -227,7 +227,7 @@ const App = () => {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-white flex items-center justify-center">
+      <div className="fixed inset-0 bg-[#F9F7F2] flex items-center justify-center">
         <h1 className="font-serif text-3xl animate-pulse tracking-tighter">LouisDC.</h1>
       </div>
     );
@@ -243,7 +243,7 @@ const App = () => {
   ];
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900 transition-colors duration-500 ${isDarkMode ? 'bg-neutral-950 text-white' : 'bg-white text-neutral-950'}`}>
+    <div className={`min-h-screen font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900 transition-colors duration-500 ${isDarkMode ? 'bg-neutral-950 text-white' : 'bg-[#F9F7F2] text-neutral-950'}`}>
 
       {/* Modal de connexion */}
       {showLogin && (
@@ -266,7 +266,7 @@ const App = () => {
 
       {/* Navigation (Masquée sur l'accueil) */}
       {activeTab !== 'home' && (
-        <nav className="fixed top-0 w-full bg-white/80 dark:bg-neutral-950/80 backdrop-blur-xl z-50 border-b border-neutral-100 dark:border-white/5">
+        <nav className="fixed top-0 w-full bg-[#F9F7F2]/80 dark:bg-neutral-950/80 backdrop-blur-xl z-50 border-b border-neutral-100 dark:border-white/5">
           <div className="max-w-[1600px] mx-auto px-8 h-24 flex items-center justify-between">
             <button onClick={() => handleNav('home')} className="font-serif text-3xl font-bold tracking-tighter text-neutral-950 dark:text-white">LouisDC.</button>
 
@@ -305,7 +305,7 @@ const App = () => {
       )}
 
       {/* Menu Mobile */}
-      <div className={`fixed inset-0 bg-white dark:bg-neutral-950 z-[60] transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'} lg:hidden pt-24`}>
+      <div className={`fixed inset-0 bg-[#F9F7F2] dark:bg-neutral-950 z-[60] transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'} lg:hidden pt-24`}>
         <div className="flex flex-col justify-center px-12 h-full space-y-8">
           <button onClick={() => handleNav('home')} className="text-left font-serif text-5xl tracking-tighter text-neutral-950 dark:text-white">Accueil.</button>
           {navItems.map(item => (
