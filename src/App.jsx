@@ -228,7 +228,7 @@ const App = () => {
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-white flex items-center justify-center">
-        <h1 className="font-serif text-3xl animate-pulse tracking-tighter">Louis.</h1>
+        <h1 className="font-serif text-3xl animate-pulse tracking-tighter">LouisDC.</h1>
       </div>
     );
   }
