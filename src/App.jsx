@@ -51,12 +51,26 @@ const App = () => {
   const [password, setPassword] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // Custom Cursor State
+  const [mousePosition, setMousePosition] = useState({ x: -100, y: -100 });
+  const [isHovering, setIsHovering] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
   // États des données (synchronisés avec Firebase)
   const [projects, setProjects] = useState([]);
   const [journal, setJournal] = useState([]);
   const [experience, setExperience] = useState([]);
   const [education, setEducation] = useState([]);
   const [photos, setPhotos] = useState([]);
+
+  // États de chargement individuels
+  const [loadingData, setLoadingData] = useState({
+    projects: true,
+    journal: true,
+    experience: true,
+    education: true,
+    photos: true
+  });
 
   // États des formulaires
   const [newProject, setNewProject] = useState({ title: '', category: '', description: '', image: '' });
@@ -86,6 +100,51 @@ const App = () => {
     initAuth();
   }, []);
 
+  // Check if mobile and setup cursor listeners
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.matchMedia('(max-width: 1024px)').matches || 'ontouchstart' in window);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    const updateMousePosition = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    const handleMouseOver = (e) => {
+      const target = e.target;
+      if (
+        target.tagName.toLowerCase() === 'button' ||
+        target.tagName.toLowerCase() === 'a' ||
+        target.closest('button') ||
+        target.closest('a') ||
+        target.tagName.toLowerCase() === 'input' ||
+        target.tagName.toLowerCase() === 'textarea'
+      ) {
+        setIsHovering(true);
+      }
+    };
+
+    const handleMouseOut = () => {
+      setIsHovering(false);
+    };
+
+    if (!isMobile) {
+      window.addEventListener('mousemove', updateMousePosition);
+      window.addEventListener('mouseover', handleMouseOver);
+      window.addEventListener('mouseout', handleMouseOut);
+    }
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('mousemove', updateMousePosition);
+      window.removeEventListener('mouseover', handleMouseOver);
+      window.removeEventListener('mouseout', handleMouseOut);
+    };
+  }, [isMobile]);
+
   // Écouteurs Firestore en temps réel
   useEffect(() => {
     if (isLoading) return;
@@ -98,7 +157,11 @@ const App = () => {
         // Tri manuel par date de création (Règle 2 : Pas de orderBy complexe côté serveur)
         data.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         setter(data);
-      }, (error) => console.error(`Erreur ${collectionName}:`, error));
+        setLoadingData(prev => ({ ...prev, [collectionName]: false }));
+      }, (error) => {
+        console.error(`Erreur ${collectionName}:`, error);
+        setLoadingData(prev => ({ ...prev, [collectionName]: false }));
+      });
     };
 
     const unsubProjects = setupListener('projects', setProjects);
@@ -243,7 +306,22 @@ const App = () => {
   ];
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900 transition-colors duration-500 ${isDarkMode ? 'bg-neutral-950 text-white' : 'bg-[#FCFAF5] text-neutral-950'}`}>
+    <div className={`min-h-screen font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900 transition-colors duration-500 ${isDarkMode ? 'bg-neutral-950 text-white cursor-none' : 'bg-[#FCFAF5] text-neutral-950 cursor-none'}`}>
+
+      {/* Custom Cursor */}
+      {!isMobile && (
+        <div
+          className="fixed pointer-events-none z-[9999] rounded-full mix-blend-difference transition-[width,height] duration-300 ease-out hidden lg:flex items-center justify-center bg-white shadow-sm"
+          style={{
+            left: `${mousePosition.x}px`,
+            top: `${mousePosition.y}px`,
+            width: isHovering ? '60px' : '20px',
+            height: isHovering ? '60px' : '20px',
+            transform: 'translate(-50%, -50%)',
+            opacity: mousePosition.x === -100 ? 0 : 1
+          }}
+        />
+      )}
 
       {/* Modal de connexion */}
       {showLogin && (
@@ -316,11 +394,11 @@ const App = () => {
         </div>
       </div>
 
-      <main className={`${activeTab !== 'home' ? 'pt-24' : ''} min-h-screen`}>
+      <main className={`${activeTab !== 'home' ? 'pt-24' : ''} min-h-screen`} key={activeTab}>
 
         {/* Hall du Musée (Home) */}
         {activeTab === 'home' && (
-          <section className="animate-fade-in-up">
+          <section className="animate-fade-in">
             <div className="max-w-[1400px] mx-auto px-8 py-8 md:py-20 relative">
               <div className="flex justify-end mb-12">
                 <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors">
@@ -359,64 +437,108 @@ const App = () => {
 
         {/* Expérience */}
         {activeTab === 'experience' && (
-          <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
+          <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in">
             <h2 className="font-serif text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-200 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Expérience.</h2>
             <div className="space-y-24">
-              {experience.map(exp => (
-                <div key={exp.id} className="grid md:grid-cols-12 gap-8 items-start">
-                  <div className="md:col-span-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 pt-2">{exp.period}</div>
-                  <div className="md:col-span-9">
-                    <h3 className="font-serif text-4xl mb-2 text-neutral-950 dark:text-white">{exp.role}</h3>
-                    <p className="text-xs font-bold uppercase tracking-widest text-neutral-950 dark:text-neutral-300 mb-4">{exp.company}</p>
-                    <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">{exp.description}</p>
+              {loadingData.experience ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="grid md:grid-cols-12 gap-8 items-start animate-pulse">
+                    <div className="md:col-span-3 h-4 bg-neutral-200 dark:bg-neutral-800 w-24"></div>
+                    <div className="md:col-span-9">
+                      <div className="h-10 bg-neutral-200 dark:bg-neutral-800 w-3/4 mb-4"></div>
+                      <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-1/3 mb-6"></div>
+                      <div className="space-y-3">
+                        <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-full"></div>
+                        <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-5/6"></div>
+                        <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-4/6"></div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {experience.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucune expérience répertoriée.</p>}
+                ))
+              ) : (
+                experience.map(exp => (
+                  <div key={exp.id} className="grid md:grid-cols-12 gap-8 items-start">
+                    <div className="md:col-span-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 pt-2">{exp.period}</div>
+                    <div className="md:col-span-9">
+                      <h3 className="font-serif text-4xl mb-2 text-neutral-950 dark:text-white">{exp.role}</h3>
+                      <p className="text-xs font-bold uppercase tracking-widest text-neutral-950 dark:text-neutral-300 mb-4">{exp.company}</p>
+                      <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">{exp.description}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+              {!loadingData.experience && experience.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucune expérience répertoriée.</p>}
             </div>
           </section>
         )}
 
         {/* Projets */}
         {activeTab === 'projects' && (
-          <section className="max-w-[1600px] mx-auto px-8 py-32 animate-fade-in-up">
+          <section className="max-w-[1600px] mx-auto px-8 py-32 animate-fade-in">
             <h2 className="font-serif text-5xl md:text-8xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Projets.</h2>
             <div className="grid md:grid-cols-2 gap-x-16 gap-y-32">
-              {projects.map(p => (
-                <div key={p.id} className="group focus:outline-none" tabIndex="0">
-                  <div className="aspect-[4/3] bg-neutral-50 dark:bg-white/5 overflow-hidden mb-8">
-                    {p.image && <img src={p.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000" alt={p.title} />}
+              {loadingData.projects ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="group animate-pulse">
+                    <div className="aspect-[4/3] bg-neutral-200 dark:bg-neutral-800 mb-8"></div>
+                    <div className="h-3 bg-neutral-200 dark:bg-neutral-800 w-1/4 mb-4"></div>
+                    <div className="h-10 bg-neutral-200 dark:bg-neutral-800 w-3/4 mb-6"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-full"></div>
+                      <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-5/6"></div>
+                    </div>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{p.category}</span>
-                  <h3 className="font-serif text-4xl mt-4 mb-6 text-neutral-950 dark:text-white">{p.title}</h3>
-                  <p className="text-neutral-500 dark:text-neutral-400 font-light text-lg leading-relaxed">{p.description}</p>
-                </div>
-              ))}
-              {projects.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucun projet exposé pour le moment.</p>}
+                ))
+              ) : (
+                projects.map(p => (
+                  <div key={p.id} className="group focus:outline-none" tabIndex="0">
+                    <div className="aspect-[4/3] bg-neutral-50 dark:bg-white/5 overflow-hidden mb-8">
+                      {p.image && <img src={p.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000" alt={p.title} />}
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{p.category}</span>
+                    <h3 className="font-serif text-4xl mt-4 mb-6 text-neutral-950 dark:text-white">{p.title}</h3>
+                    <p className="text-neutral-500 dark:text-neutral-400 font-light text-lg leading-relaxed">{p.description}</p>
+                  </div>
+                ))
+              )}
+              {!loadingData.projects && projects.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucun projet exposé pour le moment.</p>}
             </div>
           </section>
         )}
 
         {/* Formation */}
         {activeTab === 'education' && (
-          <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in-up">
+          <section className="max-w-[1000px] mx-auto px-8 py-32 animate-fade-in">
             <h2 className="font-serif text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-200 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Formation.</h2>
             <div className="space-y-20">
-              {education.map(edu => (
-                <div key={edu.id} className="border-l-2 border-neutral-950 dark:border-white pl-12">
-                  <h3 className="font-serif text-5xl mb-2 text-neutral-950 dark:text-white">{edu.school}</h3>
-                  <p className="text-xs font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-6">{edu.degree} · {edu.period}</p>
-                  <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">{edu.description}</p>
-                </div>
-              ))}
-              {education.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucune formation répertoriée.</p>}
+              {loadingData.education ? (
+                Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="border-l-2 border-neutral-200 dark:border-neutral-800 pl-12 animate-pulse">
+                    <div className="h-12 bg-neutral-200 dark:bg-neutral-800 w-2/3 mb-4"></div>
+                    <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-1/3 mb-8"></div>
+                    <div className="space-y-3">
+                      <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-full"></div>
+                      <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-4/5"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                education.map(edu => (
+                  <div key={edu.id} className="border-l-2 border-neutral-950 dark:border-white pl-12">
+                    <h3 className="font-serif text-5xl mb-2 text-neutral-950 dark:text-white">{edu.school}</h3>
+                    <p className="text-xs font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-6">{edu.degree} · {edu.period}</p>
+                    <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">{edu.description}</p>
+                  </div>
+                ))
+              )}
+              {!loadingData.education && education.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucune formation répertoriée.</p>}
             </div>
           </section>
         )}
 
         {/* À Propos */}
         {activeTab === 'about' && (
-          <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up">
+          <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in">
             <div className="grid lg:grid-cols-2 gap-24 items-center">
               <div className="aspect-[3/4] bg-neutral-100 dark:bg-white/5 overflow-hidden">
                 <img src={profileImg} className="w-full h-full object-cover grayscale hover:grayscale-0 focus:grayscale-0 outline-none transition-all duration-1000" alt="Portrait" tabIndex="0" />
@@ -432,50 +554,72 @@ const App = () => {
 
         {/* Photographie */}
         {activeTab === 'photography' && (
-          <section className="max-w-[1400px] mx-auto px-8 py-32 animate-fade-in-up">
+          <section className="max-w-[1400px] mx-auto px-8 py-32 animate-fade-in">
             <h2 className="font-serif break-words text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Photographie.</h2>
             <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-              {photos.map((photo) => (
-                <div key={photo.id} className="group relative overflow-hidden bg-neutral-100 dark:bg-white/5 border border-neutral-100 dark:border-white/5 focus:outline-none" tabIndex="0">
-                  <img src={photo.image} className="w-full grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000" alt={photo.caption} />
-                  {photo.caption && (
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-950 dark:text-white">{photo.caption}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-              {photos.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Galerie vide.</p>}
+              {loadingData.photos ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="mb-8 w-full bg-neutral-200 dark:bg-neutral-800 animate-pulse" style={{ height: `${Math.floor(Math.random() * (500 - 300 + 1) + 300)}px` }}></div>
+                ))
+              ) : (
+                photos.map((photo) => (
+                  <div key={photo.id} className="group relative overflow-hidden bg-neutral-100 dark:bg-white/5 border border-neutral-100 dark:border-white/5 focus:outline-none" tabIndex="0">
+                    <img src={photo.image} className="w-full grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000" alt={photo.caption} />
+                    {photo.caption && (
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-950 dark:text-white">{photo.caption}</p>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+              {!loadingData.photos && photos.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Galerie vide.</p>}
             </div>
           </section>
         )}
 
         {/* Journal */}
         {activeTab === 'journal' && (
-          <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in-up">
+          <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in">
             <h2 className="font-serif text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Journal.</h2>
             <div className="space-y-40">
-              {journal.map(post => (
-                <article key={post.id} className="relative pl-16 border-l border-neutral-100 hover:border-neutral-950 transition-colors duration-500">
-                  <span className="absolute left-0 top-0 -translate-x-1/2 w-4 h-4 bg-white border border-neutral-950 rounded-full"></span>
-                  <time className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-6 block">{post.date}</time>
-                  <h3 className="font-serif text-5xl mb-8 tracking-tighter">{post.title}</h3>
-                  {post.image && (
-                    <div className="mb-10 aspect-video bg-neutral-50 overflow-hidden">
-                      <img src={post.image} className="w-full h-full object-cover grayscale hover:grayscale-0 focus:grayscale-0 outline-none transition-all duration-1000" alt={post.title} tabIndex="0" />
+              {loadingData.journal ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="relative pl-16 border-l border-neutral-200 dark:border-neutral-800 animate-pulse">
+                    <span className="absolute left-0 top-0 -translate-x-1/2 w-4 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-full"></span>
+                    <div className="h-3 bg-neutral-200 dark:bg-neutral-800 w-1/4 mb-6"></div>
+                    <div className="h-12 bg-neutral-200 dark:bg-neutral-800 w-3/4 mb-8"></div>
+                    <div className="h-64 bg-neutral-200 dark:bg-neutral-800 w-full mb-10"></div>
+                    <div className="space-y-3">
+                      <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-full"></div>
+                      <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-full"></div>
+                      <div className="h-4 bg-neutral-200 dark:bg-neutral-800 w-3/4"></div>
                     </div>
-                  )}
-                  <div className="text-2xl text-neutral-500 font-light leading-relaxed whitespace-pre-wrap italic">"{post.content}"</div>
-                </article>
-              ))}
-              {journal.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 font-light">Journal vide pour le moment.</p>}
+                  </div>
+                ))
+              ) : (
+                journal.map(post => (
+                  <article key={post.id} className="relative pl-16 border-l border-neutral-100 hover:border-neutral-950 transition-colors duration-500">
+                    <span className="absolute left-0 top-0 -translate-x-1/2 w-4 h-4 bg-white border border-neutral-950 rounded-full"></span>
+                    <time className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-6 block">{post.date}</time>
+                    <h3 className="font-serif text-5xl mb-8 tracking-tighter">{post.title}</h3>
+                    {post.image && (
+                      <div className="mb-10 aspect-video bg-neutral-50 overflow-hidden">
+                        <img src={post.image} className="w-full h-full object-cover grayscale hover:grayscale-0 focus:grayscale-0 outline-none transition-all duration-1000" alt={post.title} tabIndex="0" />
+                      </div>
+                    )}
+                    <div className="text-2xl text-neutral-500 font-light leading-relaxed whitespace-pre-wrap italic">"{post.content}"</div>
+                  </article>
+                ))
+              )}
+              {!loadingData.journal && journal.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 font-light">Journal vide pour le moment.</p>}
             </div>
           </section>
         )}
 
         {/* Contact */}
         {activeTab === 'contact' && (
-          <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in-up">
+          <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in">
             <h2 className="font-serif text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Écrivez-moi.</h2>
             <div className="grid md:grid-cols-12 gap-16">
               <div className="md:col-span-5 space-y-8">
@@ -503,7 +647,7 @@ const App = () => {
 
         {/* Console Admin */}
         {activeTab === 'admin' && user && !user.isAnonymous && (
-          <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in-up pb-60">
+          <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in pb-60">
             <header className="mb-20 border-b border-rose-100 dark:border-rose-900/50 pb-8 flex justify-between items-center">
               <h2 className="font-serif text-4xl md:text-6xl tracking-tighter text-rose-600 dark:text-rose-500 flex items-center gap-4"><Lock size={40} className="hidden md:block" /> Console Admin</h2>
               <button onClick={handleLogout} className="text-neutral-400 hover:text-rose-600 dark:hover:text-rose-500 font-bold text-[10px] uppercase tracking-widest border border-neutral-100 dark:border-white/10 px-4 py-2 transition-colors">Déconnexion</button>
