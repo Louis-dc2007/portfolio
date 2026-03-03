@@ -56,6 +56,9 @@ const App = () => {
   const [isHovering, setIsHovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Get scroll position for parallax
+  const [scrollY, setScrollY] = useState(0);
+
   // États des données (synchronisés avec Firebase)
   const [projects, setProjects] = useState([]);
   const [journal, setJournal] = useState([]);
@@ -137,11 +140,17 @@ const App = () => {
       window.addEventListener('mouseout', handleMouseOut);
     }
 
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
     return () => {
       window.removeEventListener('resize', checkMobile);
       window.removeEventListener('mousemove', updateMousePosition);
       window.removeEventListener('mouseover', handleMouseOver);
       window.removeEventListener('mouseout', handleMouseOut);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [isMobile]);
 
@@ -407,8 +416,12 @@ const App = () => {
               </div>
               <div className="mb-32">
                 <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-neutral-400 mb-8">EPITA — Cycle Préparatoire</p>
-                <h1 className="font-serif text-7xl md:text-9xl lg:text-[11rem] leading-[0.85] tracking-tighter mb-6 italic text-neutral-950 dark:text-white">Futur Ingénieur.</h1>
-                <p className="font-serif text-3xl md:text-4xl text-neutral-500 tracking-tight">Louis Da Costa</p>
+                <div className="flex w-full overflow-hidden items-end pb-4 -mb-4">
+                  <h1 className="font-serif text-5xl md:text-7xl lg:text-[10rem] 2xl:text-[11rem] leading-[1] tracking-tighter text-neutral-950 dark:text-white animate-typing-sequence w-fit pr-2">
+                    Futur Ingénieur.
+                  </h1>
+                </div>
+                <p className="font-serif text-3xl md:text-4xl text-neutral-500 tracking-tight mt-6">Louis Da Costa</p>
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-neutral-100 dark:bg-white/5 border border-neutral-100 dark:border-white/5">
@@ -492,8 +505,13 @@ const App = () => {
               ) : (
                 projects.map(p => (
                   <div key={p.id} className="group focus:outline-none" tabIndex="0">
-                    <div className="aspect-[4/3] bg-neutral-50 dark:bg-white/5 overflow-hidden mb-8">
-                      {p.image && <img src={p.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000" alt={p.title} />}
+                    <div className="aspect-[4/3] bg-neutral-50 dark:bg-white/5 overflow-hidden mb-8 relative">
+                      {p.image && <img
+                        src={p.image}
+                        className="absolute inset-0 w-full h-[115%] object-cover grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000"
+                        style={{ transform: `translateY(${(scrollY * 0.05) - 30}px)` }}
+                        alt={p.title}
+                      />}
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{p.category}</span>
                     <h3 className="font-serif text-4xl mt-4 mb-6 text-neutral-950 dark:text-white">{p.title}</h3>
@@ -604,8 +622,14 @@ const App = () => {
                     <time className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-6 block">{post.date}</time>
                     <h3 className="font-serif text-5xl mb-8 tracking-tighter">{post.title}</h3>
                     {post.image && (
-                      <div className="mb-10 aspect-video bg-neutral-50 overflow-hidden">
-                        <img src={post.image} className="w-full h-full object-cover grayscale hover:grayscale-0 focus:grayscale-0 outline-none transition-all duration-1000" alt={post.title} tabIndex="0" />
+                      <div className="mb-10 aspect-video bg-neutral-50 overflow-hidden relative">
+                        <img
+                          src={post.image}
+                          className="absolute inset-0 w-full h-[115%] object-cover grayscale hover:grayscale-0 focus:grayscale-0 outline-none transition-all duration-1000"
+                          style={{ transform: `translateY(${(scrollY * 0.05) - 30}px)` }}
+                          alt={post.title}
+                          tabIndex="0"
+                        />
                       </div>
                     )}
                     <div className="text-2xl text-neutral-500 font-light leading-relaxed whitespace-pre-wrap italic">"{post.content}"</div>
