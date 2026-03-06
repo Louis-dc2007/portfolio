@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import {
   Github, Linkedin, ArrowRight, X,
@@ -24,6 +24,37 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import profileImg from './assets/img/photo_profil.jpg';
+
+const Reveal = ({ children, delay = 0, className = '' }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-1000 ease-[cubic-bezier(0.5,0,0,1)] ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+        } ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+};
+
 
 
 // --- CONFIGURATION FIREBASE ---
@@ -58,6 +89,7 @@ const App = () => {
   const [mousePosition, setMousePosition] = useState({ x: -100, y: -100 });
   const [isHovering, setIsHovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const cursorRef = useRef(null);
 
   // Get scroll position for parallax
   const [scrollY, setScrollY] = useState(0);
@@ -116,25 +148,48 @@ const App = () => {
     window.addEventListener('resize', checkMobile);
 
     const updateMousePosition = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      setMousePosition(prev => {
+        if (document.documentElement.classList.contains('magnetic-active') && prev.magnetTarget) {
+          // Very soft magnetic pull
+          const targetX = prev.magnetTarget.x;
+          const targetY = prev.magnetTarget.y;
+          // Move 15% towards the center of the element, 85% standard mouse position
+          return {
+            x: e.clientX + (targetX - e.clientX) * 0.15,
+            y: e.clientY + (targetY - e.clientY) * 0.15,
+            magnetTarget: prev.magnetTarget
+          };
+        }
+        return { x: e.clientX, y: e.clientY, magnetTarget: null };
+      });
     };
 
     const handleMouseOver = (e) => {
       const target = e.target;
-      if (
-        target.tagName.toLowerCase() === 'button' ||
-        target.tagName.toLowerCase() === 'a' ||
-        target.closest('button') ||
-        target.closest('a') ||
-        target.tagName.toLowerCase() === 'input' ||
-        target.tagName.toLowerCase() === 'textarea'
-      ) {
+      const clickable = target.closest('button, a, input, textarea');
+
+      if (clickable) {
         setIsHovering(true);
+
+        // Magnetic effect logic for bigger buttons
+        if (clickable.tagName.toLowerCase() === 'button' || clickable.tagName.toLowerCase() === 'a') {
+          const rect = clickable.getBoundingClientRect();
+          // Only magnetize if it's a decently sized button
+          if (rect.width > 30 && rect.height > 30) {
+            document.documentElement.classList.add('magnetic-active');
+            setMousePosition(prev => ({
+              ...prev,
+              magnetTarget: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+            }));
+          }
+        }
       }
     };
 
     const handleMouseOut = () => {
       setIsHovering(false);
+      document.documentElement.classList.remove('magnetic-active');
+      setMousePosition(prev => ({ ...prev, magnetTarget: null }));
     };
 
     if (!isMobile) {
@@ -205,7 +260,7 @@ const App = () => {
       await signInWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
       navigate('/admin');
-    } catch (error) {
+    } catch {
       alert("Identifiants incorrects");
     }
   };
@@ -320,16 +375,20 @@ const App = () => {
   return (
     <div className={`min-h-screen font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900 transition-colors duration-500 ${isDarkMode ? 'bg-neutral-950 text-white cursor-none' : 'bg-[#FCFAF5] text-neutral-950 cursor-none'}`}>
 
+      {/* Noise Overlay */}
+      <div className="pointer-events-none fixed inset-0 z-[1] h-full w-full opacity-[0.06] dark:opacity-[0.08] mix-blend-multiply dark:mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+
       {/* Custom Cursor */}
       {!isMobile && (
         <div
-          className="fixed pointer-events-none z-[9999] rounded-full mix-blend-difference transition-[width,height] duration-300 ease-out hidden lg:flex items-center justify-center bg-white shadow-sm"
+          ref={cursorRef}
+          className="fixed pointer-events-none z-[9999] rounded-full mix-blend-difference transition-all duration-300 ease-out hidden lg:flex items-center justify-center bg-white shadow-sm"
           style={{
             left: `${mousePosition.x}px`,
             top: `${mousePosition.y}px`,
             width: isHovering ? '60px' : '20px',
             height: isHovering ? '60px' : '20px',
-            transform: 'translate(-50%, -50%)',
+            transform: `translate(-50%, -50%) ${isHovering ? 'scale(1.1)' : 'scale(1)'}`,
             opacity: mousePosition.x === -100 ? 0 : 1
           }}
         />
@@ -375,7 +434,7 @@ const App = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 md:gap-6">
               {!user || user.isAnonymous ? (
                 <button onClick={() => setShowLogin(true)} className="hidden lg:block text-[10px] font-bold uppercase tracking-widest text-neutral-300 hover:text-neutral-950 underline underline-offset-8">Accès</button>
               ) : (
@@ -384,12 +443,11 @@ const App = () => {
               <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors">
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
-              <button onClick={() => handleNav('contact')} className="bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all">Me contacter</button>
+              <button onClick={() => handleNav('contact')} className="hidden sm:block bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all">Me contacter</button>
+              <button className="lg:hidden p-2 text-neutral-950 dark:text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+              </button>
             </div>
-
-            <button className="lg:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-            </button>
           </div>
         </nav>
       )}
@@ -436,16 +494,17 @@ const App = () => {
                     { id: 'photography', title: 'Photographie', desc: 'Regards extérieurs', icon: <Camera size={20} /> },
                     { id: 'journal', title: 'Journal', desc: 'Notes & Réflexions', icon: <Newspaper size={20} /> },
                     { id: 'about', title: 'À Propos', desc: 'Ma vision', icon: <User size={20} /> }
-                  ].map((room) => (
-                    <button
-                      key={room.id}
-                      onClick={() => handleNav(room.id)}
-                      className="group bg-white dark:bg-neutral-950 p-12 text-left hover:bg-neutral-950 dark:hover:bg-white hover:text-white dark:hover:text-neutral-950 transition-all duration-500"
-                    >
-                      <div className="mb-12 opacity-40 group-hover:opacity-100 transition-opacity">{room.icon}</div>
-                      <h3 className="font-serif text-4xl mb-4 tracking-tighter">{room.title}</h3>
-                      <p className="text-xs uppercase tracking-widest opacity-40 group-hover:opacity-60">{room.desc}</p>
-                    </button>
+                  ].map((room, index) => (
+                    <Reveal delay={index * 100} key={room.id}>
+                      <button
+                        onClick={() => handleNav(room.id)}
+                        className="group bg-white dark:bg-neutral-950 p-12 text-left hover:bg-neutral-950 dark:hover:bg-white hover:text-white dark:hover:text-neutral-950 transition-all duration-500 w-full h-full"
+                      >
+                        <div className="mb-12 opacity-40 group-hover:opacity-100 transition-opacity">{room.icon}</div>
+                        <h3 className="font-serif text-4xl mb-4 tracking-tighter">{room.title}</h3>
+                        <p className="text-xs uppercase tracking-widest opacity-40 group-hover:opacity-60">{room.desc}</p>
+                      </button>
+                    </Reveal>
                   ))}
                 </div>
               </div>
@@ -473,15 +532,17 @@ const App = () => {
                     </div>
                   ))
                 ) : (
-                  experience.map(exp => (
-                    <div key={exp.id} className="grid md:grid-cols-12 gap-8 items-start">
-                      <div className="md:col-span-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 pt-2">{exp.period}</div>
-                      <div className="md:col-span-9">
-                        <h3 className="font-serif text-4xl mb-2 text-neutral-950 dark:text-white">{exp.role}</h3>
-                        <p className="text-xs font-bold uppercase tracking-widest text-neutral-950 dark:text-neutral-300 mb-4">{exp.company}</p>
-                        <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">{exp.description}</p>
+                  experience.map((exp, index) => (
+                    <Reveal key={exp.id} delay={index * 100}>
+                      <div className="grid md:grid-cols-12 gap-8 items-start">
+                        <div className="md:col-span-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 pt-2">{exp.period}</div>
+                        <div className="md:col-span-9">
+                          <h3 className="font-serif text-4xl mb-2 text-neutral-950 dark:text-white">{exp.role}</h3>
+                          <p className="text-xs font-bold uppercase tracking-widest text-neutral-950 dark:text-neutral-300 mb-4">{exp.company}</p>
+                          <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">{exp.description}</p>
+                        </div>
                       </div>
-                    </div>
+                    </Reveal>
                   ))
                 )}
                 {!loadingData.experience && experience.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucune expérience répertoriée.</p>}
@@ -507,20 +568,22 @@ const App = () => {
                     </div>
                   ))
                 ) : (
-                  projects.map(p => (
-                    <div key={p.id} className="group focus:outline-none" tabIndex="0">
-                      <div className="aspect-[4/3] bg-neutral-50 dark:bg-white/5 overflow-hidden mb-8 relative">
-                        {p.image && <img
-                          src={p.image}
-                          className="absolute inset-0 w-full h-[115%] object-cover grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000"
-                          style={{ transform: `translateY(${(scrollY * 0.05) - 30}px)` }}
-                          alt={p.title}
-                        />}
+                  projects.map((p, index) => (
+                    <Reveal key={p.id} delay={index * 100}>
+                      <div className="group focus:outline-none" tabIndex="0">
+                        <div className="aspect-[4/3] bg-neutral-50 dark:bg-white/5 overflow-hidden mb-8 relative">
+                          {p.image && <img
+                            src={p.image}
+                            className="absolute inset-[-10%] w-[120%] h-[120%] object-cover grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000 origin-center"
+                            style={{ transform: `translateY(${(-scrollY * 0.08)}px) scale(1.05)` }}
+                            alt={p.title}
+                          />}
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{p.category}</span>
+                        <h3 className="font-serif text-4xl mt-4 mb-6 text-neutral-950 dark:text-white">{p.title}</h3>
+                        <p className="text-neutral-500 dark:text-neutral-400 font-light text-lg leading-relaxed">{p.description}</p>
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{p.category}</span>
-                      <h3 className="font-serif text-4xl mt-4 mb-6 text-neutral-950 dark:text-white">{p.title}</h3>
-                      <p className="text-neutral-500 dark:text-neutral-400 font-light text-lg leading-relaxed">{p.description}</p>
-                    </div>
+                    </Reveal>
                   ))
                 )}
                 {!loadingData.projects && projects.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucun projet exposé pour le moment.</p>}
@@ -545,12 +608,14 @@ const App = () => {
                     </div>
                   ))
                 ) : (
-                  education.map(edu => (
-                    <div key={edu.id} className="border-l-2 border-neutral-950 dark:border-white pl-12">
-                      <h3 className="font-serif text-5xl mb-2 text-neutral-950 dark:text-white">{edu.school}</h3>
-                      <p className="text-xs font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-6">{edu.degree} · {edu.period}</p>
-                      <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">{edu.description}</p>
-                    </div>
+                  education.map((edu, index) => (
+                    <Reveal key={edu.id} delay={index * 100}>
+                      <div className="border-l-2 border-neutral-950 dark:border-white pl-12">
+                        <h3 className="font-serif text-5xl mb-2 text-neutral-950 dark:text-white">{edu.school}</h3>
+                        <p className="text-xs font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-6">{edu.degree} · {edu.period}</p>
+                        <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">{edu.description}</p>
+                      </div>
+                    </Reveal>
                   ))
                 )}
                 {!loadingData.education && education.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Aucune formation répertoriée.</p>}
@@ -562,14 +627,18 @@ const App = () => {
           <Route path="/about" element={
             <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in">
               <div className="grid lg:grid-cols-2 gap-24 items-center">
-                <div className="aspect-[3/4] bg-neutral-100 dark:bg-white/5 overflow-hidden">
-                  <img src={profileImg} className="w-full h-full object-cover grayscale hover:grayscale-0 focus:grayscale-0 outline-none transition-all duration-1000" alt="Portrait" tabIndex="0" />
-                </div>
-                <div className="space-y-12">
-                  <h2 className="font-serif text-5xl md:text-8xl tracking-tighter italic text-neutral-950 dark:text-white">Bio.</h2>
-                  <p className="text-3xl font-light leading-tight text-neutral-800 dark:text-neutral-200">Passionné par l'informatique, je développe mes compétences via l'EPITA et des projets personnels.</p>
-                  <p className="text-xl font-light text-neutral-500 dark:text-neutral-400 leading-relaxed">Étudiant à l'EPITA Paris, je combine rigueur technique et curiosité créative.</p>
-                </div>
+                <Reveal delay={0}>
+                  <div className="aspect-[3/4] bg-neutral-100 dark:bg-white/5 overflow-hidden">
+                    <img src={profileImg} className="w-full h-full object-cover grayscale hover:grayscale-0 focus:grayscale-0 outline-none transition-all duration-1000" alt="Portrait" tabIndex="0" />
+                  </div>
+                </Reveal>
+                <Reveal delay={200}>
+                  <div className="space-y-12">
+                    <h2 className="font-serif text-5xl md:text-8xl tracking-tighter italic text-neutral-950 dark:text-white">Bio.</h2>
+                    <p className="text-3xl font-light leading-tight text-neutral-800 dark:text-neutral-200">Passionné par l'informatique, je développe mes compétences via l'EPITA et des projets personnels.</p>
+                    <p className="text-xl font-light text-neutral-500 dark:text-neutral-400 leading-relaxed">Étudiant à l'EPITA Paris, je combine rigueur technique et curiosité créative.</p>
+                  </div>
+                </Reveal>
               </div>
             </section>
           } />
@@ -581,18 +650,20 @@ const App = () => {
               <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
                 {loadingData.photos ? (
                   Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="mb-8 w-full bg-neutral-200 dark:bg-neutral-800 animate-pulse" style={{ height: `${Math.floor(Math.random() * (500 - 300 + 1) + 300)}px` }}></div>
+                    <div key={i} className="mb-8 w-full bg-neutral-200 dark:bg-neutral-800 animate-pulse" style={{ height: `${300 + ((i * 73) % 200)}px` }}></div>
                   ))
                 ) : (
-                  photos.map((photo) => (
-                    <div key={photo.id} className="group relative overflow-hidden bg-neutral-100 dark:bg-white/5 border border-neutral-100 dark:border-white/5 focus:outline-none" tabIndex="0">
-                      <img src={photo.image} className="w-full grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000" alt={photo.caption} />
-                      {photo.caption && (
-                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-950 dark:text-white">{photo.caption}</p>
-                        </div>
-                      )}
-                    </div>
+                  photos.map((photo, index) => (
+                    <Reveal key={photo.id} delay={(index % 3) * 100}>
+                      <div className="group relative overflow-hidden bg-neutral-100 dark:bg-white/5 border border-neutral-100 dark:border-white/5 focus:outline-none" tabIndex="0">
+                        <img src={photo.image} className="w-full grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-1000" alt={photo.caption} />
+                        {photo.caption && (
+                          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-950 dark:text-white">{photo.caption}</p>
+                          </div>
+                        )}
+                      </div>
+                    </Reveal>
                   ))
                 )}
                 {!loadingData.photos && photos.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 dark:text-neutral-700 font-light">Galerie vide.</p>}
@@ -620,24 +691,26 @@ const App = () => {
                     </div>
                   ))
                 ) : (
-                  journal.map(post => (
-                    <article key={post.id} className="relative pl-16 border-l border-neutral-100 hover:border-neutral-950 transition-colors duration-500">
-                      <span className="absolute left-0 top-0 -translate-x-1/2 w-4 h-4 bg-white border border-neutral-950 rounded-full"></span>
-                      <time className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-6 block">{post.date}</time>
-                      <h3 className="font-serif text-5xl mb-8 tracking-tighter">{post.title}</h3>
-                      {post.image && (
-                        <div className="mb-10 aspect-video bg-neutral-50 overflow-hidden relative">
-                          <img
-                            src={post.image}
-                            className="absolute inset-0 w-full h-[115%] object-cover grayscale hover:grayscale-0 focus:grayscale-0 outline-none transition-all duration-1000"
-                            style={{ transform: `translateY(${(scrollY * 0.05) - 30}px)` }}
-                            alt={post.title}
-                            tabIndex="0"
-                          />
-                        </div>
-                      )}
-                      <div className="text-2xl text-neutral-500 font-light leading-relaxed whitespace-pre-wrap italic">"{post.content}"</div>
-                    </article>
+                  journal.map((post, index) => (
+                    <Reveal key={post.id} delay={index * 100}>
+                      <article className="relative pl-16 border-l border-neutral-100 hover:border-neutral-950 transition-colors duration-500">
+                        <span className="absolute left-0 top-0 -translate-x-1/2 w-4 h-4 bg-white border border-neutral-950 rounded-full"></span>
+                        <time className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-6 block">{post.date}</time>
+                        <h3 className="font-serif text-5xl mb-8 tracking-tighter">{post.title}</h3>
+                        {post.image && (
+                          <div className="mb-10 aspect-video bg-neutral-50 overflow-hidden relative">
+                            <img
+                              src={post.image}
+                              className="absolute inset-[-10%] w-[120%] h-[120%] object-cover grayscale hover:grayscale-0 focus:grayscale-0 outline-none transition-all duration-1000 origin-center"
+                              style={{ transform: `translateY(${(-scrollY * 0.08)}px) scale(1.05)` }}
+                              alt={post.title}
+                              tabIndex="0"
+                            />
+                          </div>
+                        )}
+                        <div className="text-2xl text-neutral-500 font-light leading-relaxed whitespace-pre-wrap italic">"{post.content}"</div>
+                      </article>
+                    </Reveal>
                   ))
                 )}
                 {!loadingData.journal && journal.length === 0 && <p className="font-serif text-2xl italic text-neutral-300 font-light">Journal vide pour le moment.</p>}
@@ -650,13 +723,13 @@ const App = () => {
             <section className="max-w-[800px] mx-auto px-8 py-32 animate-fade-in">
               <h2 className="font-serif text-5xl md:text-7xl tracking-tighter mb-24 border-b border-neutral-100 dark:border-white/10 pb-12 text-neutral-950 dark:text-white">Écrivez-moi.</h2>
               <div className="grid md:grid-cols-12 gap-16">
-                <div className="md:col-span-5 space-y-8">
+                <Reveal delay={0} className="md:col-span-5 space-y-8">
                   <p className="text-xl font-light text-neutral-500 dark:text-neutral-400 leading-relaxed italic">
                     Une question sur un projet ? N'hésitez pas à me contacter via ce formulaire.
                   </p>
                   <p className="font-serif text-lg text-neutral-950 dark:text-white">louisdacosta@etik.com</p>
-                </div>
-                <div className="md:col-span-7">
+                </Reveal>
+                <Reveal delay={200} className="md:col-span-7">
                   <form onSubmit={handleSubmitContact} className="space-y-8">
                     <div className="grid grid-cols-2 gap-8">
                       <input type="text" placeholder="Nom" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-3 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={contactData.name} onChange={(e) => setContactData({ ...contactData, name: e.target.value })} required />
@@ -668,7 +741,7 @@ const App = () => {
                       Envoyer le message <Send size={16} />
                     </button>
                   </form>
-                </div>
+                </Reveal>
               </div>
             </section>
           } />
