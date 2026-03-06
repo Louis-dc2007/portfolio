@@ -133,3 +133,19 @@
     color: inherit;
   }
 }
+
+@keyframes custom-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.custom-animate-marquee {
+  animation: custom-marquee 100s linear infinite;
+  display: flex;
+  width: max-content;
+}
