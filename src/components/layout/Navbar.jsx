@@ -1,5 +1,5 @@
-import React from 'react';
-import { LogOut, Sun, Moon, Menu, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sun, Moon, Menu, X } from 'lucide-react';
 
 const Navbar = ({
     location,
@@ -13,56 +13,69 @@ const Navbar = ({
     isMenuOpen,
     setIsMenuOpen
 }) => {
-    if (location.pathname === '/') return null;
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
 
     return (
-        <nav className="fixed top-0 w-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md z-50 shadow-sm transition-all duration-300">
-            <div className="max-w-[1600px] mx-auto px-8 lg:px-[120px] h-24 flex items-center justify-between">
+        <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+            scrolled 
+                ? 'bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md shadow-[0_1px_0_rgba(0,0,0,0.06)]' 
+                : 'bg-transparent'
+        }`}>
+            <div className="max-w-[1400px] mx-auto px-8 md:px-[120px] h-20 flex items-center justify-between">
                 {/* Logo */}
                 <button 
                     onClick={() => handleNav('home')} 
-                    className="font-serif text-3xl font-bold tracking-tighter text-brand-teal dark:text-white"
+                    className="font-heading font-bold text-xl tracking-tight text-neutral-900 dark:text-white hover:text-brand-purple transition-colors"
                 >
-                    LouisDC.
+                    LouisDC<span className="text-brand-purple">.</span>
                 </button>
 
-                {/* Navigation Links */}
-                <div className="hidden lg:flex items-center space-x-12 text-sm font-sans tracking-wide text-brand-teal dark:text-neutral-300">
+                {/* Nav Links */}
+                <div className="hidden lg:flex items-center gap-8">
                     {navItems.map(item => (
                         <button
                             key={item.id}
                             onClick={() => handleNav(item.id)}
-                            className={`hover:text-brand-blue dark:hover:text-white transition-colors relative ${
+                            className={`text-[13px] font-medium transition-colors relative ${
                                 location.pathname === '/' + item.id 
-                                ? 'text-brand-teal dark:text-white font-semibold after:content-[""] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[2px] after:bg-brand-teal dark:after:bg-white' 
-                                : 'text-brand-teal/80 dark:text-neutral-400'
+                                    ? 'text-brand-purple' 
+                                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                             }`}
                         >
                             {item.label}
+                            {location.pathname === '/' + item.id && (
+                                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-brand-purple rounded-full"></span>
+                            )}
                         </button>
                     ))}
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-4">
                     <button 
                         onClick={() => setIsDarkMode(!isDarkMode)} 
-                        className="text-brand-teal/70 hover:text-brand-teal dark:text-neutral-400 dark:hover:text-white transition-colors"
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-brand-warm dark:hover:bg-white/10 transition-all"
                         aria-label="Toggle Dark Mode"
                     >
-                        {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                        {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
                     </button>
                     <button 
                         onClick={() => handleNav('contact')} 
-                        className="hidden sm:block bg-brand-coral text-white dark:text-white px-8 py-3 text-[13px] font-semibold uppercase tracking-wide hover:bg-[#d94b57] transition-all rounded-sm"
+                        className="hidden sm:block bg-brand-rose text-white px-7 py-2.5 text-[12px] font-bold uppercase tracking-wider hover:brightness-110 transition-all rounded-full shadow-md shadow-brand-rose/25"
                     >
                         Me contacter
                     </button>
                     <button 
-                        className="lg:hidden p-2 text-brand-teal dark:text-white" 
+                        className="lg:hidden p-2 text-neutral-700 dark:text-white" 
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
-                        {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+                        {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
                     </button>
                 </div>
             </div>

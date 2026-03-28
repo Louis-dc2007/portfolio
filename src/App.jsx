@@ -7,7 +7,6 @@ import { useAuth } from './hooks/useAuth';
 import { useFirestoreData } from './hooks/useFirestoreData';
 
 // UI Components
-import CustomCursor from './components/ui/CustomCursor';
 
 // Layout Components
 import Navbar from './components/layout/Navbar';
@@ -23,7 +22,6 @@ import Projects from './pages/Projects';
 import Education from './pages/Education';
 import About from './pages/About';
 import Photography from './pages/Photography';
-import Journal from './pages/Journal';
 import Contact from './pages/Contact';
 import AdminConsole from './pages/admin/AdminConsole';
 
@@ -37,7 +35,6 @@ const App = () => {
   // Firestore Data
   const {
     projects, setProjects,
-    journal, setJournal,
     experience, setExperience,
     education, setEducation,
     photos, setPhotos,
@@ -79,8 +76,8 @@ const App = () => {
 
   if (isLoadingAuth) {
     return (
-      <div className="fixed inset-0 bg-[#FDFCF8] flex items-center justify-center">
-        <h1 className="font-serif text-3xl animate-pulse tracking-tighter">LouisDC.</h1>
+      <div className="fixed inset-0 bg-white flex items-center justify-center">
+        <h1 className="font-heading text-2xl font-bold animate-pulse tracking-tight text-neutral-900">LouisDC<span className="text-brand-purple">.</span></h1>
       </div>
     );
   }
@@ -90,13 +87,11 @@ const App = () => {
     { id: 'projects', label: 'Projets' },
     { id: 'education', label: 'Formation' },
     { id: 'photography', label: 'Photographie' },
-    { id: 'journal', label: 'Journal' },
     { id: 'about', label: 'À propos' }
   ];
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-brand-teal selection:text-white dark:selection:bg-white dark:selection:text-brand-teal transition-colors duration-500 ${isDarkMode ? 'bg-neutral-950 text-white' : 'bg-white text-brand-teal'}`}>
-      <CustomCursor />
+    <div className={`min-h-screen font-sans transition-colors duration-500 ${isDarkMode ? 'bg-neutral-950 text-white' : 'bg-white text-neutral-900'}`}>
 
       <LoginModal
         showLogin={showLogin}
@@ -123,7 +118,7 @@ const App = () => {
         user={user}
       />
 
-      <main className={`${location.pathname !== '/' ? 'pt-24' : ''} min-h-screen`} key={location.pathname}>
+      <main className="min-h-screen" key={location.pathname}>
         <Routes>
           <Route path="/" element={<Home isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} handleNav={handleNav} projects={projects} />} />
           <Route path="/experience" element={<Experience loading={loadingData.experience} experience={experience} />} />
@@ -131,14 +126,12 @@ const App = () => {
           <Route path="/education" element={<Education loading={loadingData.education} education={education} />} />
           <Route path="/about" element={<About />} />
           <Route path="/photography" element={<Photography loading={loadingData.photos} photos={photos} />} />
-          <Route path="/journal" element={<Journal loading={loadingData.journal} journal={journal} scrollY={scrollY} />} />
           <Route path="/contact" element={<Contact />} />
           {user && !user.isAnonymous && <Route path="/admin" element={
             <AdminConsole
               user={user}
               handleLogout={handleLogout}
               projects={projects} setProjects={setProjects}
-              journal={journal} setJournal={setJournal}
               experience={experience} setExperience={setExperience}
               education={education} setEducation={setEducation}
               photos={photos} setPhotos={setPhotos}
@@ -147,28 +140,30 @@ const App = () => {
         </Routes>
       </main>
 
-      <footer className="py-24 border-t border-brand-mint/30 dark:border-white/5 mt-20 bg-[#F9F9F9] dark:bg-neutral-900">
-        <div className="max-w-[1400px] mx-auto px-10 md:px-[120px] flex flex-col md:flex-row justify-between items-center gap-12">
+      {/* Footer */}
+      <footer className="py-16 md:py-20 bg-neutral-900 dark:bg-neutral-950 mt-20 border-t border-brand-gold/20">
+        <div className="max-w-[1400px] mx-auto px-8 md:px-[120px] flex flex-col md:flex-row justify-between items-center gap-10">
           <div className="text-center md:text-left">
-            <h4 className="font-serif text-4xl font-bold tracking-tight mb-2 text-brand-bordeaux dark:text-white">LouisDC.</h4>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-teal/60 dark:text-neutral-500">LDC — Portfolio</p>
+            <h4 className="font-heading text-xl font-bold tracking-tight mb-1 text-white">LouisDC<span className="text-brand-purple">.</span></h4>
+            <p className="text-xs text-neutral-500">Portfolio — Édition 2026</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-8 text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-teal/80 dark:text-neutral-500">
-            <button onClick={() => handleNav('home')} className="hover:text-brand-blue dark:hover:text-white transition-colors">Accueil</button>
-            <button onClick={() => handleNav('contact')} className="hover:text-brand-blue dark:hover:text-white transition-colors">Me contacter</button>
+          <div className="flex flex-wrap justify-center gap-5 text-xs text-neutral-400">
+            <button onClick={() => handleNav('home')} className="hover:text-brand-teal transition-colors">Accueil</button>
+            <button onClick={() => handleNav('projects')} className="hover:text-brand-teal transition-colors">Projets</button>
+            <button onClick={() => handleNav('contact')} className="hover:text-brand-teal transition-colors">Contact</button>
             {user && !user.isAnonymous ? (
-              <button onClick={() => handleNav('admin')} className="hover:text-brand-coral transition-colors flex items-center gap-2">
-                <Lock size={12} /> Console Admin
+              <button onClick={() => handleNav('admin')} className="hover:text-brand-purple transition-colors flex items-center gap-1.5">
+                <Lock size={10} /> Admin
               </button>
             ) : (
-              <button onClick={() => setShowLogin(true)} className="hover:text-brand-blue dark:hover:text-white transition-colors flex items-center gap-2">
-                <Lock size={12} /> Accès Admin
+              <button onClick={() => setShowLogin(true)} className="hover:text-brand-purple transition-colors flex items-center gap-1.5">
+                <Lock size={10} /> Admin
               </button>
             )}
-            <a href="https://www.instagram.com/louis_dc07/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-blue dark:hover:text-white transition-colors">Instagram</a>
-            <a href="https://www.linkedin.com/in/louis-da-costa2007/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-blue dark:hover:text-white transition-colors">LinkedIn</a>
+            <a href="https://www.instagram.com/louis_dc07/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-teal transition-colors">Instagram</a>
+            <a href="https://www.linkedin.com/in/louis-da-costa2007/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-teal transition-colors">LinkedIn</a>
           </div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-bordeaux/80 dark:text-neutral-600">© {new Date().getFullYear()} — Propriété de Louis D.</p>
+          <p className="text-xs text-neutral-600">© {new Date().getFullYear()} Louis Da Costa</p>
         </div>
       </footer>
     </div>

@@ -28,7 +28,7 @@ const LoginModal = ({ showLogin, setShowLogin }) => {
                 <button onClick={() => setShowLogin(false)} className="absolute top-6 right-6 text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors">
                     <X size={24} />
                 </button>
-                <h2 className="font-serif text-4xl mb-8 flex items-center gap-4 tracking-tighter text-neutral-950 dark:text-white">
+                <h2 className="font-heading text-4xl mb-8 flex items-center gap-4 tracking-tighter text-neutral-950 dark:text-white">
                     <Lock size={28} /> Admin
                 </h2>
                 <form onSubmit={handleLogin} className="space-y-6">

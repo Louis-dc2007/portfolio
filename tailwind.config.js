@@ -7,15 +7,15 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Inter', 'Roboto', 'sans-serif'],
-                serif: ['Montserrat', 'sans-serif'],
+                heading: ['Montserrat', 'Inter', 'sans-serif'],
             },
             colors: {
                 brand: {
-                    teal: '#114B5F',
-                    blue: '#456990',
-                    mint: '#E4FDE1',
-                    coral: '#F45B69',
-                    bordeaux: '#6B2737'
+                    purple: '#731DD8',
+                    teal: '#48A9A6',
+                    warm: '#E4DFDA',
+                    gold: '#D4B483',
+                    rose: '#C1666B',
                 }
             },
             animation: {

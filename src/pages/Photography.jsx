@@ -3,28 +3,38 @@ import Reveal from '../components/ui/Reveal';
 
 const Photography = ({ loading, photos }) => {
     return (
-        <section className="max-w-[1400px] mx-auto px-10 md:px-[120px] py-16 md:py-32 pt-32 md:pt-40 animate-fade-in bg-white dark:bg-neutral-950">
-            <h2 className="font-sans text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter uppercase mb-20 md:mb-32 border-b border-brand-teal/10 pb-8 text-brand-teal dark:text-white">Photographie.</h2>
-            <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+        <section className="max-w-[1400px] mx-auto px-8 md:px-[120px] py-16 md:py-32 pt-28 md:pt-36 animate-fade-in bg-white dark:bg-neutral-950">
+            <div className="flex items-center gap-4 mb-16 md:mb-20">
+                <h2 className="font-heading font-bold text-3xl md:text-4xl tracking-tight text-neutral-900 dark:text-white">Photographie</h2>
+                <div className="flex-1 h-[1px] bg-brand-warm dark:bg-neutral-800"></div>
+            </div>
+            <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
                 {loading ? (
                     Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="mb-8 w-full bg-[#F9F9F9] dark:bg-neutral-800 animate-pulse rounded-sm" style={{ height: `${300 + ((i * 73) % 200)}px` }}></div>
+                        <div key={i} className="w-full bg-brand-warm/40 dark:bg-neutral-800 animate-pulse rounded-2xl" style={{ height: `${250 + ((i * 73) % 200)}px` }}></div>
                     ))
                 ) : (
                     photos.map((photo, index) => (
-                        <Reveal key={photo.id} delay={(index % 3) * 100}>
-                            <div className="group relative overflow-hidden bg-[#F9F9F9] dark:bg-white/5 border border-brand-teal/5 dark:border-white/5 focus:outline-none rounded-sm shadow-sm hover:shadow-md transition-shadow" tabIndex="0">
-                                <img src={photo.image} className="w-full grayscale group-hover:grayscale-0 group-hover:scale-105 group-focus:grayscale-0 transition-all duration-1000 ease-out" alt={photo.caption} />
-                                {photo.caption && (
-                                    <div className="absolute bottom-0 left-0 right-0 p-5 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500">
-                                        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-teal dark:text-white text-center">{photo.caption}</p>
-                                    </div>
-                                )}
+                        <Reveal key={photo.id} delay={(index % 3) * 60}>
+                            <div className="group relative overflow-hidden rounded-2xl cursor-pointer break-inside-avoid" tabIndex="0">
+                                <img 
+                                    src={photo.image} 
+                                    className="w-full group-hover:scale-105 transition-transform duration-[1.5s] ease-out" 
+                                    alt={photo.caption} 
+                                />
+                                {/* Purple gradient overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-brand-purple/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500 flex items-end p-6">
+                                    {photo.caption && (
+                                        <p className="text-white text-xs font-medium tracking-wider uppercase translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                            {photo.caption}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         </Reveal>
                     ))
                 )}
-                {!loading && photos.length === 0 && <p className="font-sans text-xl md:text-2xl text-brand-teal/40 dark:text-neutral-700 font-light tracking-widest uppercase">Aucun visuel disponible.</p>}
+                {!loading && photos.length === 0 && <p className="text-base text-neutral-400 font-light">Aucun visuel disponible.</p>}
             </div>
         </section>
     );

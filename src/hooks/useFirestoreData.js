@@ -4,14 +4,12 @@ import { db, portfolioId } from '../config/firebase';
 
 export const useFirestoreData = () => {
     const [projects, setProjects] = useState([]);
-    const [journal, setJournal] = useState([]);
     const [experience, setExperience] = useState([]);
     const [education, setEducation] = useState([]);
     const [photos, setPhotos] = useState([]);
 
     const [loadingData, setLoadingData] = useState({
         projects: true,
-        journal: true,
         experience: true,
         education: true,
         photos: true
@@ -33,14 +31,12 @@ export const useFirestoreData = () => {
         };
 
         const unsubProjects = setupListener('projects', setProjects);
-        const unsubJournal = setupListener('journal', setJournal);
         const unsubExp = setupListener('experience', setExperience);
         const unsubEdu = setupListener('education', setEducation);
         const unsubPhotos = setupListener('photos', setPhotos);
 
         return () => {
             unsubProjects();
-            unsubJournal();
             unsubExp();
             unsubEdu();
             unsubPhotos();
@@ -49,7 +45,6 @@ export const useFirestoreData = () => {
 
     return {
         projects, setProjects,
-        journal, setJournal,
         experience, setExperience,
         education, setEducation,
         photos, setPhotos,

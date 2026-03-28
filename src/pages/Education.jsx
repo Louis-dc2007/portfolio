@@ -3,33 +3,35 @@ import Reveal from '../components/ui/Reveal';
 
 const Education = ({ loading, education }) => {
     return (
-        <section className="max-w-[1400px] mx-auto px-10 md:px-[120px] py-16 md:py-32 pt-32 md:pt-40 animate-fade-in bg-white dark:bg-neutral-950">
-            <h2 className="font-serif text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-20 md:mb-32 border-b border-brand-mint/50 dark:border-white/10 pb-8 text-brand-teal dark:text-white">Formation.</h2>
-            <div className="space-y-20 md:space-y-28">
+        <section className="max-w-[1400px] mx-auto px-8 md:px-[120px] py-16 md:py-32 pt-28 md:pt-36 animate-fade-in bg-white dark:bg-neutral-950">
+            <div className="flex items-center gap-4 mb-16 md:mb-20">
+                <h2 className="font-heading font-bold text-3xl md:text-4xl tracking-tight text-neutral-900 dark:text-white">Formation</h2>
+                <div className="flex-1 h-[1px] bg-brand-warm dark:bg-neutral-800"></div>
+            </div>
+            <div className="space-y-8 md:space-y-10">
                 {loading ? (
                     Array.from({ length: 2 }).map((_, i) => (
-                        <div key={i} className="border-l-2 border-neutral-100 dark:border-neutral-800 pl-16 animate-pulse">
-                            <div className="h-12 bg-[#F9F9F9] dark:bg-neutral-800 w-2/3 mb-6"></div>
-                            <div className="h-4 bg-[#E4FDE1] dark:bg-neutral-800 w-1/3 mb-10"></div>
-                            <div className="space-y-3">
-                                <div className="h-4 bg-neutral-100 dark:bg-neutral-800 w-full"></div>
-                                <div className="h-4 bg-neutral-100 dark:bg-neutral-800 w-4/5"></div>
-                            </div>
+                        <div key={i} className="border-l-2 border-brand-warm pl-8 animate-pulse space-y-3">
+                            <div className="h-6 bg-brand-warm w-2/3 rounded"></div>
+                            <div className="h-4 bg-brand-warm/60 w-1/3 rounded"></div>
+                            <div className="h-4 bg-brand-warm/40 w-full rounded"></div>
                         </div>
                     ))
                 ) : (
                     education.map((edu, index) => (
-                        <Reveal key={edu.id} delay={index * 100}>
-                            <div className="border-l-[3px] border-brand-teal/10 dark:border-white/20 pl-10 md:pl-16 relative">
-                                <div className="absolute w-3 h-3 bg-brand-teal rounded-full -left-[7.5px] top-3"></div>
-                                <h3 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-brand-teal dark:text-white">{edu.school}</h3>
-                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-blue dark:text-neutral-500 mb-6">{edu.degree} · {edu.period}</p>
-                                <p className="text-xl text-brand-teal/70 dark:text-neutral-400 font-light leading-relaxed">{edu.description}</p>
+                        <Reveal key={edu.id} delay={index * 80}>
+                            <div className="group border-l-2 border-brand-purple/30 hover:border-brand-purple pl-8 md:pl-10 transition-colors duration-300 py-2">
+                                <h3 className="font-heading font-bold text-xl md:text-2xl text-neutral-900 dark:text-white tracking-tight mb-2">{edu.school}</h3>
+                                <div className="flex flex-wrap items-center gap-3 mb-3">
+                                    <span className="text-xs font-medium text-brand-teal bg-brand-teal/10 px-3 py-1 rounded-full">{edu.degree}</span>
+                                    <span className="text-xs text-neutral-400">{edu.period}</span>
+                                </div>
+                                <p className="text-sm text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">{edu.description}</p>
                             </div>
                         </Reveal>
                     ))
                 )}
-                {!loading && education.length === 0 && <p className="font-serif text-2xl text-brand-teal/40 dark:text-neutral-700 font-light">Aucune formation répertoriée.</p>}
+                {!loading && education.length === 0 && <p className="text-base text-neutral-400 font-light">Aucune formation répertoriée.</p>}
             </div>
         </section>
     );

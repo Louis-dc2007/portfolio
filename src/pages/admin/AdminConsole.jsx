@@ -7,13 +7,11 @@ const AdminConsole = ({
     user,
     handleLogout,
     projects, setProjects,
-    journal, setJournal,
     experience, setExperience,
     education, setEducation,
     photos, setPhotos
 }) => {
     const [newProject, setNewProject] = useState({ title: '', category: '', description: '', image: '' });
-    const [newPost, setNewPost] = useState({ title: '', content: '', image: '' });
     const [newExp, setNewExp] = useState({ company: '', role: '', period: '', description: '' });
     const [newEdu, setNewEdu] = useState({ school: '', degree: '', period: '', description: '' });
     const [newPhotos, setNewPhotos] = useState([]);
@@ -58,9 +56,6 @@ const AdminConsole = ({
                 ...data,
                 createdAt: serverTimestamp()
             };
-            if (col === 'journal') {
-                payload.date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-            }
             await addDoc(collection(db, 'artifacts', portfolioId, 'public', 'data', col), payload);
             resetter(initialData);
         } catch (err) {
@@ -79,7 +74,6 @@ const AdminConsole = ({
             } else {
                 await deleteDoc(doc(db, 'artifacts', portfolioId, 'public', 'data', col, id));
                 if (col === 'projects') setProjects(prev => prev.filter(item => item.id !== id));
-                if (col === 'journal') setJournal(prev => prev.filter(item => item.id !== id));
                 if (col === 'experience') setExperience(prev => prev.filter(item => item.id !== id));
                 if (col === 'education') setEducation(prev => prev.filter(item => item.id !== id));
             }
@@ -92,7 +86,7 @@ const AdminConsole = ({
     return (
         <section className="max-w-[1200px] mx-auto px-8 py-32 animate-fade-in pb-60">
             <header className="mb-20 border-b border-rose-100 dark:border-rose-900/50 pb-8 flex justify-between items-center">
-                <h2 className="font-serif text-4xl md:text-6xl tracking-tighter text-rose-600 dark:text-rose-500 flex items-center gap-4"><Lock size={40} className="hidden md:block" /> Console Admin</h2>
+                <h2 className="font-heading text-4xl md:text-6xl tracking-tighter text-rose-600 dark:text-rose-500 flex items-center gap-4"><Lock size={40} className="hidden md:block" /> Console Admin</h2>
                 <button onClick={handleLogout} className="text-neutral-400 hover:text-rose-600 dark:hover:text-rose-500 font-bold text-[10px] uppercase tracking-widest border border-neutral-100 dark:border-white/10 px-4 py-2 transition-colors">Déconnexion</button>
             </header>
 
@@ -124,45 +118,13 @@ const AdminConsole = ({
                     <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                         {projects.map(p => (
                             <div key={p.id} className="flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-white/5 group">
-                                <span className="font-serif truncate mr-4">{p.title}</span>
+                                <span className="font-heading truncate mr-4">{p.title}</span>
                                 <button onClick={() => deleteItem('projects', p.id)} className="text-neutral-200 group-hover:text-rose-600 transition-colors flex-shrink-0"><Trash2 size={18} /></button>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Gérer le Journal */}
-                <div className="space-y-10">
-                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 border-b border-neutral-100 pb-4">Nouvelle Note Journal</h3>
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            addDocToFirestore('journal', newPost, setNewPost, { title: '', content: '', image: '' });
-                        }}
-                        className="space-y-6 bg-neutral-50 dark:bg-white/5 p-10 shadow-sm"
-                    >
-                        <input type="text" placeholder="Titre de la note" className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newPost.title} onChange={e => setNewPost({ ...newPost, title: e.target.value })} required />
-                        <textarea placeholder="Réflexion..." className="w-full bg-transparent border-b border-neutral-200 dark:border-white/20 py-2 focus:outline-none h-44 focus:border-neutral-950 dark:focus:border-white text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600" value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} required />
-                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-8 hover:border-neutral-950 dark:hover:border-white transition-colors cursor-pointer bg-white dark:bg-neutral-900">
-                            {newPost.image ? (
-                                <img src={newPost.image} className="max-h-32 mb-2" alt="Aperçu" />
-                            ) : (
-                                <Upload size={24} className="text-neutral-300 mb-2" />
-                            )}
-                            <span className="text-[10px] font-bold uppercase">Image illustrative (PC)</span>
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, setNewPost, 'image')} />
-                        </label>
-                        <button type="submit" className="w-full bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors">Enregistrer Note</button>
-                    </form>
-                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                        {journal.map(post => (
-                            <div key={post.id} className="flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-white/5 group">
-                                <span className="font-serif truncate mr-4">{post.title}</span>
-                                <button onClick={() => deleteItem('journal', post.id)} className="text-neutral-200 group-hover:text-rose-600 transition-colors flex-shrink-0"><Trash2 size={18} /></button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
 
                 {/* Gérer les Expériences */}
                 <div className="space-y-10">
@@ -183,7 +145,7 @@ const AdminConsole = ({
                     <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                         {experience.map(exp => (
                             <div key={exp.id} className="flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-white/5 group">
-                                <span className="font-serif truncate mr-4">{exp.role} @ {exp.company}</span>
+                                <span className="font-heading truncate mr-4">{exp.role} @ {exp.company}</span>
                                 <button onClick={() => deleteItem('experience', exp.id)} className="text-neutral-200 group-hover:text-rose-600 transition-colors flex-shrink-0"><Trash2 size={18} /></button>
                             </div>
                         ))}
@@ -209,7 +171,7 @@ const AdminConsole = ({
                     <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                         {education.map(edu => (
                             <div key={edu.id} className="flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-white/5 group">
-                                <span className="font-serif truncate mr-4">{edu.degree} @ {edu.school}</span>
+                                <span className="font-heading truncate mr-4">{edu.degree} @ {edu.school}</span>
                                 <button onClick={() => deleteItem('education', edu.id)} className="text-neutral-200 group-hover:text-rose-600 transition-colors flex-shrink-0"><Trash2 size={18} /></button>
                             </div>
                         ))}
@@ -244,7 +206,7 @@ const AdminConsole = ({
                             <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-12 hover:border-neutral-950 dark:hover:border-white transition-colors cursor-pointer bg-white dark:bg-neutral-900">
                                 {newPhotos.length > 0 ? (
                                     <div className="text-center">
-                                        <p className="text-3xl font-serif mb-2 text-neutral-950 dark:text-white">{newPhotos.length}</p>
+                                        <p className="text-3xl font-heading mb-2 text-neutral-950 dark:text-white">{newPhotos.length}</p>
                                         <p className="text-[10px] font-bold uppercase text-neutral-500">Photos sélectionnées</p>
                                     </div>
                                 ) : (
