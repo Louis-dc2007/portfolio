@@ -124,7 +124,7 @@ const App = () => {
           <Route path="/experience" element={<Experience loading={loadingData.experience} experience={experience} />} />
           <Route path="/projects" element={<Projects loading={loadingData.projects} projects={projects} scrollY={scrollY} />} />
           <Route path="/education" element={<Education loading={loadingData.education} education={education} />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/about" element={<About handleNav={handleNav} />} />
           <Route path="/photography" element={<Photography loading={loadingData.photos} photos={photos} />} />
           <Route path="/contact" element={<Contact />} />
           {user && !user.isAnonymous && <Route path="/admin" element={

@@ -27,13 +27,13 @@ const Home = ({ isDarkMode, setIsDarkMode, handleNav, projects }) => {
                     </Reveal>
                     <Reveal delay={100}>
                         <h1 className="font-heading font-bold text-[clamp(2.5rem,7vw,4.5rem)] leading-[1.08] tracking-tight text-neutral-900 dark:text-white mb-6">
-                            Futur Ingénieur,<br/>
-                            <span className="bg-gradient-to-r from-brand-purple to-brand-teal bg-clip-text text-transparent">créateur</span> d'expériences<br/>numériques.
+                            Louis Da Costa<br />
+                            <span className="bg-gradient-to-r from-brand-purple to-brand-teal bg-clip-text text-transparent">Futur Ingénieur</span>.
                         </h1>
                     </Reveal>
                     <Reveal delay={200}>
                         <p className="text-base md:text-lg text-neutral-500 dark:text-neutral-400 font-light leading-relaxed max-w-lg mb-10">
-                            Étudiant à l'EPITA Paris, passionné par le développement logiciel et le design minimaliste.
+                            Étudiant en classe préparatoire à l'EPITA Paris, passionné par l'informatique et la création numérique.
                         </p>
                     </Reveal>
                     <Reveal delay={300}>
@@ -51,16 +51,16 @@ const Home = ({ isDarkMode, setIsDarkMode, handleNav, projects }) => {
                 {/* ── Featured Project (Full-width) ── */}
                 {featuredProject && (
                     <Reveal delay={400}>
-                        <div 
+                        <div
                             className="group mb-20 md:mb-32 cursor-pointer relative overflow-hidden rounded-3xl"
                             onClick={() => handleNav('projects')}
                             tabIndex="0"
                         >
                             <div className="aspect-[16/7] md:aspect-[21/9] overflow-hidden relative bg-brand-warm dark:bg-neutral-800">
                                 {featuredProject.image ? (
-                                    <img 
-                                        src={featuredProject.image} 
-                                        alt={featuredProject.title} 
+                                    <img
+                                        src={featuredProject.image}
+                                        alt={featuredProject.title}
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2s] ease-out"
                                     />
                                 ) : (
@@ -82,13 +82,13 @@ const Home = ({ isDarkMode, setIsDarkMode, handleNav, projects }) => {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
                     {categories.map((cat, index) => (
                         <Reveal delay={index * 60} key={cat.id}>
-                            <button 
+                            <button
                                 onClick={() => handleNav(cat.id)}
                                 className="group w-full text-left p-6 md:p-8 rounded-2xl border-2 border-brand-warm dark:border-neutral-800 hover:border-transparent transition-all duration-300 flex flex-col justify-between min-h-[130px] md:min-h-[160px] bg-white dark:bg-neutral-900 hover:shadow-xl relative overflow-hidden"
                             >
                                 {/* Colored bg on hover */}
                                 <div className={`absolute inset-0 ${cat.bg} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl`}></div>
-                                
+
                                 <div className="relative z-10">
                                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${cat.bg} ${cat.text} mb-4 shadow-md group-hover:bg-white group-hover:text-neutral-900 transition-all duration-300`}>
                                         {cat.icon}
