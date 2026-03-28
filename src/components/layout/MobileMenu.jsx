@@ -9,7 +9,6 @@ const MobileMenu = ({ isMenuOpen, handleNav, navItems, user }) => {
                     <button key={item.id} onClick={() => handleNav(item.id)} className="text-left font-serif text-5xl tracking-tighter text-neutral-400 dark:text-neutral-600 dark:hover:text-white transition-colors">{item.label}.</button>
                 ))}
                 <button onClick={() => handleNav('contact')} className="text-left font-serif text-5xl tracking-tighter text-neutral-400 dark:text-neutral-600 dark:hover:text-white transition-colors">Contact.</button>
-                {user && !user.isAnonymous && <button onClick={() => handleNav('admin')} className="text-left font-serif text-5xl tracking-tighter text-rose-600">Admin.</button>}
             </div>
         </div>
     );

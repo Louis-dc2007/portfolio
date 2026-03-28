@@ -95,7 +95,7 @@ const App = () => {
   ];
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900 transition-colors duration-500 ${isDarkMode ? 'bg-neutral-950 text-white cursor-none' : 'bg-[#FDFCF8] text-neutral-950 cursor-none'}`}>
+    <div className={`min-h-screen font-sans selection:bg-brand-teal selection:text-white dark:selection:bg-white dark:selection:text-brand-teal transition-colors duration-500 ${isDarkMode ? 'bg-neutral-950 text-white' : 'bg-white text-brand-teal'}`}>
       <CustomCursor />
 
       <LoginModal
@@ -147,28 +147,28 @@ const App = () => {
         </Routes>
       </main>
 
-      <footer className="py-24 border-t border-neutral-100 dark:border-white/5 mt-20 bg-neutral-50/50 dark:bg-white/5">
-        <div className="max-w-[1600px] mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-12">
+      <footer className="py-24 border-t border-brand-mint/30 dark:border-white/5 mt-20 bg-[#F9F9F9] dark:bg-neutral-900">
+        <div className="max-w-[1400px] mx-auto px-10 md:px-[120px] flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="text-center md:text-left">
-            <h4 className="font-serif text-3xl font-bold tracking-tighter mb-4 text-neutral-950 dark:text-white">LouisDC.</h4>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">LDC — Portfolio</p>
+            <h4 className="font-serif text-4xl font-bold tracking-tight mb-2 text-brand-bordeaux dark:text-white">LouisDC.</h4>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-teal/60 dark:text-neutral-500">LDC — Portfolio</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
-            <button onClick={() => handleNav('home')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">Accueil</button>
-            <button onClick={() => handleNav('contact')} className="hover:text-neutral-950 dark:hover:text-white transition-colors text-neutral-950 dark:text-white underline underline-offset-4 decoration-neutral-200 dark:decoration-neutral-700">Me contacter</button>
+          <div className="flex flex-wrap justify-center gap-8 text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-teal/80 dark:text-neutral-500">
+            <button onClick={() => handleNav('home')} className="hover:text-brand-blue dark:hover:text-white transition-colors">Accueil</button>
+            <button onClick={() => handleNav('contact')} className="hover:text-brand-blue dark:hover:text-white transition-colors">Me contacter</button>
             {user && !user.isAnonymous ? (
-              <button onClick={() => handleNav('admin')} className="hover:text-rose-600 transition-colors flex items-center gap-2">
-                <Lock size={10} /> Console Admin
+              <button onClick={() => handleNav('admin')} className="hover:text-brand-coral transition-colors flex items-center gap-2">
+                <Lock size={12} /> Console Admin
               </button>
             ) : (
-              <button onClick={() => setShowLogin(true)} className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-2">
-                <Lock size={10} /> Accès Admin
+              <button onClick={() => setShowLogin(true)} className="hover:text-brand-blue dark:hover:text-white transition-colors flex items-center gap-2">
+                <Lock size={12} /> Accès Admin
               </button>
             )}
-            <a href="https://www.instagram.com/louis_dc07/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-950 dark:hover:text-white transition-colors">Instagram</a>
-            <a href="https://www.linkedin.com/in/louis-da-costa2007/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-950 dark:hover:text-white transition-colors">LinkedIn</a>
+            <a href="https://www.instagram.com/louis_dc07/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-blue dark:hover:text-white transition-colors">Instagram</a>
+            <a href="https://www.linkedin.com/in/louis-da-costa2007/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-blue dark:hover:text-white transition-colors">LinkedIn</a>
           </div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-300 dark:text-neutral-600">© {new Date().getFullYear()} — Propriété de Louis D.</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-bordeaux/80 dark:text-neutral-600">© {new Date().getFullYear()} — Propriété de Louis D.</p>
         </div>
       </footer>
     </div>

@@ -6,8 +6,17 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Inter', 'sans-serif'],
-                serif: ['Playfair Display', 'serif'],
+                sans: ['Inter', 'Roboto', 'sans-serif'],
+                serif: ['Montserrat', 'sans-serif'],
+            },
+            colors: {
+                brand: {
+                    teal: '#114B5F',
+                    blue: '#456990',
+                    mint: '#E4FDE1',
+                    coral: '#F45B69',
+                    bordeaux: '#6B2737'
+                }
             },
             animation: {
                 'marquee': 'marquee 25s linear infinite',

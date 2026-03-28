@@ -32,27 +32,26 @@
 
 @layer base {
   :root {
-    --highlight-bg: #0a0a0a;
+    --highlight-bg: #114B5F;
     --highlight-text: #ffffff;
+    --background: #FFFFFF;
+    --foreground: #114B5F;
   }
 
   .dark {
-    --highlight-bg: #ffffff;
-    --highlight-text: #0a0a0a;
+    --highlight-bg: #F45B69;
+    --highlight-text: #ffffff;
+    --background: #FFFFFF; /* Maintaining white background dominancy even in dark mode initially, or we can use light gray */
+    --foreground: #114B5F;
   }
 
   body {
-    cursor: none;
+    background-color: var(--background);
+    color: var(--foreground);
+    @apply antialiased;
   }
 
-  a,
-  button,
-  input,
-  textarea,
-  [tabindex="0"],
-  label {
-    cursor: none;
-  }
+  /* Removed custom cursor */
 }
 
 

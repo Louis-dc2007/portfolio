@@ -16,36 +16,52 @@ const Navbar = ({
     if (location.pathname === '/') return null;
 
     return (
-        <nav className="fixed top-0 w-full bg-[#FDFCF8]/80 dark:bg-neutral-950/80 backdrop-blur-xl z-50 border-b border-neutral-100 dark:border-white/5">
-            <div className="max-w-[1600px] mx-auto px-8 h-24 flex items-center justify-between">
-                <button onClick={() => handleNav('home')} className="font-serif text-3xl font-bold tracking-tighter text-neutral-950 dark:text-white">LouisDC.</button>
+        <nav className="fixed top-0 w-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md z-50 shadow-sm transition-all duration-300">
+            <div className="max-w-[1600px] mx-auto px-8 lg:px-[120px] h-24 flex items-center justify-between">
+                {/* Logo */}
+                <button 
+                    onClick={() => handleNav('home')} 
+                    className="font-serif text-3xl font-bold tracking-tighter text-brand-teal dark:text-white"
+                >
+                    LouisDC.
+                </button>
 
-                <div className="hidden lg:flex items-center space-x-8 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">
+                {/* Navigation Links */}
+                <div className="hidden lg:flex items-center space-x-12 text-sm font-sans tracking-wide text-brand-teal dark:text-neutral-300">
                     {navItems.map(item => (
                         <button
                             key={item.id}
                             onClick={() => handleNav(item.id)}
-                            className={`hover:text-neutral-950 dark:hover:text-white transition-colors ${location.pathname === '/' + item.id ? 'text-neutral-950 dark:text-white border-b border-neutral-950 dark:border-white' : ''}`}
+                            className={`hover:text-brand-blue dark:hover:text-white transition-colors relative ${
+                                location.pathname === '/' + item.id 
+                                ? 'text-brand-teal dark:text-white font-semibold after:content-[""] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[2px] after:bg-brand-teal dark:after:bg-white' 
+                                : 'text-brand-teal/80 dark:text-neutral-400'
+                            }`}
                         >
                             {item.label}
                         </button>
                     ))}
-                    {user && !user.isAnonymous && (
-                        <button onClick={() => handleNav('admin')} className="text-rose-600 font-bold">Console</button>
-                    )}
                 </div>
 
-                <div className="flex items-center gap-4 md:gap-6">
-                    {!user || user.isAnonymous ? (
-                        <button onClick={() => setShowLogin(true)} className="hidden lg:block text-[10px] font-bold uppercase tracking-widest text-neutral-300 hover:text-neutral-950 dark:hover:text-white underline underline-offset-8">Accès</button>
-                    ) : (
-                        <button onClick={handleLogout} className="text-neutral-400 hover:text-rose-600"><LogOut size={20} /></button>
-                    )}
-                    <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors">
+                {/* Actions */}
+                <div className="flex items-center gap-6">
+                    <button 
+                        onClick={() => setIsDarkMode(!isDarkMode)} 
+                        className="text-brand-teal/70 hover:text-brand-teal dark:text-neutral-400 dark:hover:text-white transition-colors"
+                        aria-label="Toggle Dark Mode"
+                    >
                         {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
-                    <button onClick={() => handleNav('contact')} className="hidden sm:block bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all">Me contacter</button>
-                    <button className="lg:hidden p-2 text-neutral-950 dark:text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                    <button 
+                        onClick={() => handleNav('contact')} 
+                        className="hidden sm:block bg-brand-coral text-white dark:text-white px-8 py-3 text-[13px] font-semibold uppercase tracking-wide hover:bg-[#d94b57] transition-all rounded-sm"
+                    >
+                        Me contacter
+                    </button>
+                    <button 
+                        className="lg:hidden p-2 text-brand-teal dark:text-white" 
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    >
                         {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
                     </button>
                 </div>
