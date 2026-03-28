@@ -1,72 +1,93 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { Briefcase, ArrowRight, GraduationCap, Camera, Newspaper, User } from 'lucide-react';
 import Reveal from '../components/ui/Reveal';
 
-const Home = ({ isDarkMode, setIsDarkMode, handleNav, projects }) => {
-    // Top 3 featured projects for the lookbook
-    const featuredProjects = projects ? projects.slice(0, 3) : [];
+const Home = ({ isDarkMode, setIsDarkMode, handleNav }) => {
+    // E-commerce categories style navigation
+    const categories = [
+        {
+            id: 'projects',
+            title: 'Projets',
+            desc: 'Découvrir la collection',
+            icon: <ArrowRight size={32} strokeWidth={1} />
+        },
+        {
+            id: 'experience',
+            title: 'Expérience',
+            desc: 'Parcours professionnel',
+            icon: <Briefcase size={32} strokeWidth={1} />
+        },
+        {
+            id: 'about',
+            title: 'À Propos',
+            desc: 'Vision & Profil',
+            icon: <User size={32} strokeWidth={1} />
+        },
+        {
+            id: 'education',
+            title: 'Formation',
+            desc: 'Cursus académique',
+            icon: <GraduationCap size={32} strokeWidth={1} />
+        },
+        {
+            id: 'photography',
+            title: 'Photographie',
+            desc: 'Sélection visuelle',
+            icon: <Camera size={32} strokeWidth={1} />
+        },
+        {
+            id: 'journal',
+            title: 'Journal',
+            desc: 'Articles et notes',
+            icon: <Newspaper size={32} strokeWidth={1} />
+        }
+    ];
 
     return (
         <section className="animate-fade-in relative min-h-screen pb-32 bg-white dark:bg-neutral-950 transition-colors duration-300">
-            
-            <div className="max-w-[1600px] mx-auto px-10 md:px-[120px] py-16 md:py-32 relative z-10 pt-32 md:pt-40">
-                {/* Hero Minimalist (La Redoute aesthetic: huge typography, clean space) */}
-                <div className="mb-40 md:mb-64 flex flex-col items-center text-center">
-                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-blue mb-8">Portfolio 2026</p>
-                    <h1 className="font-sans font-bold text-[18vw] md:text-[14rem] leading-none tracking-tighter text-brand-teal dark:text-white mb-12 uppercase break-words w-full">
-                        Ingénieur
+            <div className="max-w-[1400px] mx-auto px-10 md:px-[120px] py-16 md:py-32 relative z-10 pt-32 md:pt-40">
+                {/* Hero Section */}
+                <div className="mb-32 md:mb-48 flex flex-col items-center text-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-brand-blue mb-8">Édition 2026</p>
+                    <h1 className="font-sans font-bold text-5xl md:text-7xl lg:text-[8rem] uppercase tracking-tighter text-brand-teal dark:text-white mb-10 leading-none">
+                        Louis Da Costa
                     </h1>
-                    <p className="max-w-xl text-lg md:text-xl text-brand-teal/70 dark:text-neutral-400 font-light leading-relaxed">
-                        Conception et développement d'expériences numériques immersives, performantes et minimalistes.
+                    <p className="max-w-xl text-lg md:text-xl text-brand-teal/70 dark:text-neutral-400 font-light leading-relaxed mb-12">
+                        Futur ingénieur. Conception minimale et performances de haut niveau.
                     </p>
                     <button 
                         onClick={() => handleNav('contact')} 
-                        className="mt-16 bg-brand-coral text-white dark:text-white px-12 py-5 text-sm font-semibold uppercase tracking-[0.2em] hover:bg-[#d94b57] transition-colors rounded-sm flex items-center justify-center min-w-[200px]"
+                        className="bg-brand-coral text-white dark:text-white px-12 py-5 text-[11px] md:text-sm font-semibold uppercase tracking-[0.2em] hover:bg-[#d94b57] transition-colors rounded-sm flex items-center justify-center w-full md:w-auto mx-auto"
                     >
                         Me contacter
                     </button>
                 </div>
 
-                {/* Featured Projects / "La Collection" */}
-                {featuredProjects.length > 0 && (
-                    <div className="mb-40">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 border-b border-brand-teal/10 pb-8 gap-6 md:gap-0">
-                            <h2 className="font-sans font-bold text-3xl md:text-5xl uppercase tracking-tighter text-brand-teal dark:text-white">Sélection</h2>
-                            <button onClick={() => handleNav('projects')} className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-blue hover:text-brand-coral transition-colors flex items-center gap-3 group">
-                                Tout voir <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-24">
-                            {featuredProjects.map((p, index) => (
-                                <Reveal key={p.id || index} delay={index * 100}>
-                                    <div 
-                                        className="group cursor-pointer focus:outline-none flex flex-col h-full" 
-                                        onClick={() => handleNav('projects')}
-                                        tabIndex="0"
-                                    >
-                                        <div className="aspect-[3/4] bg-[#F9F9F9] dark:bg-white/5 overflow-hidden mb-8 relative rounded-sm">
-                                            {p.image ? (
-                                                <img
-                                                    src={p.image}
-                                                    className="w-full h-full object-cover grayscale opacity-90 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-[1.5s] ease-out origin-center"
-                                                    alt={p.title}
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-brand-teal/20 text-sm uppercase tracking-widest">
-                                                    Visuel non disponible
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="mt-auto">
-                                            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-blue block mb-3">{p.category}</span>
-                                            <h3 className="font-sans font-bold text-2xl md:text-3xl text-brand-teal dark:text-white uppercase tracking-tight">{p.title}</h3>
-                                        </div>
+                {/* E-commerce category grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-x-16 md:gap-y-24">
+                    {categories.map((cat, index) => (
+                        <Reveal delay={index * 100} key={cat.id}>
+                            <div 
+                                className="group cursor-pointer focus:outline-none flex flex-col h-full"
+                                tabIndex="0"
+                                onClick={() => handleNav(cat.id)}
+                            >
+                                {/* Imaged/Icon Block */}
+                                <div className="aspect-[4/3] md:aspect-[3/2] bg-[#F9F9F9] dark:bg-neutral-900 border border-brand-teal/5 dark:border-white/5 flex items-center justify-center mb-8 relative overflow-hidden transition-all duration-700 group-hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-sm">
+                                    <div className="text-brand-blue dark:text-neutral-500 group-hover:text-brand-coral transition-colors duration-500 z-10 transform group-hover:scale-110">
+                                        {cat.icon}
                                     </div>
-                                </Reveal>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                                    <div className="absolute inset-0 bg-brand-teal/5 dark:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                                </div>
+                                {/* Texts strictly below the block */}
+                                <div className="text-left">
+                                    <h3 className="font-sans font-bold text-3xl md:text-4xl uppercase tracking-tighter text-brand-teal dark:text-white mb-3 group-hover:text-brand-blue transition-colors duration-300">{cat.title}</h3>
+                                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-teal/50 dark:text-neutral-500">{cat.desc}</p>
+                                </div>
+                            </div>
+                        </Reveal>
+                    ))}
+                </div>
             </div>
         </section>
     );
