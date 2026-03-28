@@ -4,7 +4,7 @@ import Reveal from '../components/ui/Reveal';
 const Photography = ({ loading, photos }) => {
     return (
         <section className="max-w-[1400px] mx-auto px-10 md:px-[120px] py-16 md:py-32 pt-32 md:pt-40 animate-fade-in bg-white dark:bg-neutral-950">
-            <h2 className="font-serif text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-20 md:mb-32 border-b border-brand-mint/50 dark:border-white/10 pb-8 text-brand-teal dark:text-white">Photographie.</h2>
+            <h2 className="font-sans text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter uppercase mb-20 md:mb-32 border-b border-brand-teal/10 pb-8 text-brand-teal dark:text-white">Photographie.</h2>
             <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
                 {loading ? (
                     Array.from({ length: 6 }).map((_, i) => (
@@ -24,7 +24,7 @@ const Photography = ({ loading, photos }) => {
                         </Reveal>
                     ))
                 )}
-                {!loading && photos.length === 0 && <p className="font-serif text-2xl text-brand-teal/40 dark:text-neutral-700 font-light">Galerie vide.</p>}
+                {!loading && photos.length === 0 && <p className="font-sans text-xl md:text-2xl text-brand-teal/40 dark:text-neutral-700 font-light tracking-widest uppercase">Aucun visuel disponible.</p>}
             </div>
         </section>
     );

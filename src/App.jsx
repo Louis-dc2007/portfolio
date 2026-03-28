@@ -125,7 +125,7 @@ const App = () => {
 
       <main className={`${location.pathname !== '/' ? 'pt-24' : ''} min-h-screen`} key={location.pathname}>
         <Routes>
-          <Route path="/" element={<Home isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} handleNav={handleNav} />} />
+          <Route path="/" element={<Home isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} handleNav={handleNav} projects={projects} />} />
           <Route path="/experience" element={<Experience loading={loadingData.experience} experience={experience} />} />
           <Route path="/projects" element={<Projects loading={loadingData.projects} projects={projects} scrollY={scrollY} />} />
           <Route path="/education" element={<Education loading={loadingData.education} education={education} />} />
