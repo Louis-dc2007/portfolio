@@ -14,10 +14,10 @@ const About = ({ handleNav }) => {
                 <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-12 md:gap-20 items-start">
                     <Reveal delay={0}>
                         <div className="w-full max-w-[320px] mx-auto aspect-[3/4] bg-white dark:bg-neutral-900 overflow-hidden rounded-2xl shadow-sm relative group">
-                            <img 
-                                src={profileImg} 
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2s] ease-out" 
-                                alt="Louis Da Costa" 
+                            <img
+                                src={profileImg}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2s] ease-out"
+                                alt="Louis Da Costa"
                             />
                             <div className="absolute top-4 left-4 w-10 h-10 border-l-2 border-t-2 border-brand-gold/50 rounded-tl-xl"></div>
                             <div className="absolute bottom-4 right-4 w-10 h-10 border-r-2 border-b-2 border-brand-gold/50 rounded-br-xl"></div>
@@ -32,7 +32,7 @@ const About = ({ handleNav }) => {
                                 En parallèle de mes études, la photographie est une passion à part entière qui me permet d'exprimer ma créativité et de développer mon œil artistique.
                             </p>
                             <div className="flex flex-wrap gap-3 mb-2">
-                                {['Python', 'React-TS', 'Photographie', 'Classe préparatoire'].map(skill => (
+                                {['Python', 'React-TS', 'Photographie', 'Classe préparatoire', 'C'].map(skill => (
                                     <span key={skill} className="text-xs font-medium px-4 py-2 bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 rounded-full border border-brand-warm dark:border-neutral-700">
                                         {skill}
                                     </span>
